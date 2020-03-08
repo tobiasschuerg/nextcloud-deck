@@ -76,6 +76,7 @@ public class AttachmentsActivity extends AppCompatActivity {
                     };
                     RecyclerView.Adapter adapter = new AttachmentAdapter(account, fullCard.getId(), attachments);
                     binding.viewPager.setAdapter(adapter);
+//                    binding.viewPager.setUserInputEnabled(true);
                     binding.viewPager.registerOnPageChangeCallback(onPageChangeCallback);
                     if (currentAttachment != 0L) {
                         for (int i = 0; i < attachments.size(); i++) {

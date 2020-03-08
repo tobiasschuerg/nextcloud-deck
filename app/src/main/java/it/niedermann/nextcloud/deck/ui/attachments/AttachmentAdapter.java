@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bogdwellers.pinchtozoom.ImageMatrixTouchHandler;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
@@ -75,6 +76,7 @@ public class AttachmentAdapter extends RecyclerView.Adapter<AttachmentAdapter.At
                                 if (context instanceof FragmentActivity) {
                                     ((FragmentActivity) context).supportStartPostponedEnterTransition();
                                 }
+                                holder.binding.preview.setOnTouchListener(new ImageMatrixTouchHandler(holder.binding.preview.getContext()));
                                 return false;
                             }
                         })
