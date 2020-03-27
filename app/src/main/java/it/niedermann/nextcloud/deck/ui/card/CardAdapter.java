@@ -13,13 +13,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewManager;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -42,6 +42,7 @@ import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.ItemCardBinding;
 import it.niedermann.nextcloud.deck.model.Card;
 import it.niedermann.nextcloud.deck.model.Label;
+import it.niedermann.nextcloud.deck.model.Stack;
 import it.niedermann.nextcloud.deck.model.User;
 import it.niedermann.nextcloud.deck.model.enums.DBStatus;
 import it.niedermann.nextcloud.deck.model.full.FullCard;
@@ -60,6 +61,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ItemCardViewHo
     private static final String TAG = CardAdapter.class.getCanonicalName();
 
     //    public static final int REQUEST_CODE_START_EDIT_ACTIVITY = 100;
+    public static final String BUNDLE_KEY_ACCOUNT = "account";
     public static final String BUNDLE_KEY_ACCOUNT_ID = "accountId";
     public static final String BUNDLE_KEY_LOCAL_ID = "localId";
     public static final String BUNDLE_KEY_BOARD_ID = "boardId";
@@ -72,19 +74,29 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ItemCardViewHo
     private SingleSignOnAccount account;
     private final SyncManager syncManager;
     private final long boardId;
+    private final long stackId;
     private final boolean canEdit;
     private LifecycleOwner lifecycleOwner;
     private List<FullStack> availableStacks = new ArrayList<>();
+
+    @Nullable
+    private final SelectCardListener selectCardListener;
 
     private int maxAvatarCount;
     private int maxLabelsShown;
     private int maxLabelsChars;
 
-    public CardAdapter(long boardId, boolean canEdit, @NonNull SyncManager syncManager, @NonNull Fragment fragment) {
+    public CardAdapter(long boardId, long stackId, boolean canEdit, @NonNull SyncManager syncManager, @NonNull Fragment fragment) {
+        this(boardId, stackId, canEdit, syncManager, fragment, null);
+    }
+
+    public CardAdapter(long boardId, long stackId, boolean canEdit, @NonNull SyncManager syncManager, @NonNull Fragment fragment, @Nullable SelectCardListener selectCardListener) {
         this.lifecycleOwner = fragment;
         this.boardId = boardId;
+        this.stackId = stackId;
         this.canEdit = canEdit;
         this.syncManager = syncManager;
+        this.selectCardListener = selectCardListener;
     }
 
     @NonNull
@@ -112,19 +124,20 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ItemCardViewHo
     @Override
     public void onBindViewHolder(@NonNull ItemCardViewHolder viewHolder, int position) {
         FullCard card = cardList.get(position);
-        if (!canEdit) {
-            ((ViewManager) viewHolder.binding.cardMenu.getParent()).removeView(viewHolder.binding.cardMenu);
-        }
 
         viewHolder.binding.card.setOnClickListener((View clickedView) -> {
-            Intent intent = new Intent(clickedView.getContext(), EditActivity.class);
-            intent.putExtra(BUNDLE_KEY_ACCOUNT_ID, card.getAccountId());
-            intent.putExtra(BUNDLE_KEY_BOARD_ID, boardId);
-            intent.putExtra(BUNDLE_KEY_LOCAL_ID, card.getLocalId());
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
+            if (selectCardListener == null) {
+                Intent intent = new Intent(clickedView.getContext(), EditActivity.class);
+                intent.putExtra(BUNDLE_KEY_ACCOUNT_ID, card.getAccountId());
+                intent.putExtra(BUNDLE_KEY_BOARD_ID, boardId);
+                intent.putExtra(BUNDLE_KEY_LOCAL_ID, card.getLocalId());
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+            } else {
+                selectCardListener.onCardSelected(card);
+            }
         });
-        if (canEdit) {
+        if (canEdit && selectCardListener == null) {
             viewHolder.binding.card.setOnLongClickListener((View draggedView) -> {
                 ClipData dragData = ClipData.newPlainText("cardid", card.getLocalId() + "");
 
@@ -139,6 +152,8 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ItemCardViewHo
                 return true;
             });
             setupMoveMenu(card.getAccountId(), boardId);
+        } else {
+            viewHolder.binding.cardMenu.setVisibility(View.GONE);
         }
         viewHolder.binding.cardTitle.setText(card.getCard().getTitle());
         String description = card.getCard().getDescription();
@@ -176,9 +191,20 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ItemCardViewHo
         if (attachmentsCount == 0) {
             viewHolder.binding.cardCountAttachments.setVisibility(View.GONE);
         } else {
-            setupAttachmentCount(viewHolder.binding.cardCountAttachments, attachmentsCount);
+            setupCounter(viewHolder.binding.cardCountAttachments, attachmentsCount);
 
             viewHolder.binding.cardCountAttachments.setVisibility(View.VISIBLE);
+            showDetails = true;
+        }
+
+        final int commentsCount = card.getCommentCount();
+
+        if (commentsCount == 0) {
+            viewHolder.binding.cardCountComments.setVisibility(View.GONE);
+        } else {
+            setupCounter(viewHolder.binding.cardCountComments, commentsCount);
+
+            viewHolder.binding.cardCountComments.setVisibility(View.VISIBLE);
             showDetails = true;
         }
 
@@ -242,22 +268,18 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ItemCardViewHo
         }
     }
 
-    private void setupAttachmentCount(@NonNull TextView cardCountAttachments, int attachmentsCount) {
-        if (attachmentsCount > 99) {
-            cardCountAttachments.setText(context.getString(R.string.attachment_count_max_value));
-        } else if (attachmentsCount > 1) {
-            cardCountAttachments.setText(String.valueOf(attachmentsCount));
-        } else if (attachmentsCount == 1) {
-            cardCountAttachments.setText("");
+    private void setupCounter(@NonNull TextView textView, int count) {
+        if (count > 99) {
+            textView.setText(context.getString(R.string.counter_max_value));
+        } else if (count > 1) {
+            textView.setText(String.valueOf(count));
+        } else if (count == 1) {
+            textView.setText("");
         }
     }
 
     private void setupDueDate(@NonNull TextView cardDueDate, Card card) {
-        cardDueDate.setText(
-                DateUtil.getRelativeDateTimeString(
-                        this.context,
-                        card.getDueDate().getTime())
-        );
+        cardDueDate.setText(DateUtil.getRelativeDateTimeString(this.context, card.getDueDate().getTime()));
         ViewUtil.themeDueDate(this.context, cardDueDate, card.getDueDate());
     }
 
@@ -365,13 +387,18 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ItemCardViewHo
                 return true;
             }
             case R.id.action_card_move: {
+                int currentStackItem = 0;
                 CharSequence[] items = new CharSequence[availableStacks.size()];
                 for (int i = 0; i < availableStacks.size(); i++) {
-                    items[i] = availableStacks.get(i).getStack().getTitle();
+                    final Stack stack = availableStacks.get(i).getStack();
+                    items[i] = stack.getTitle();
+                    if (stack.getLocalId().equals(stackId)) {
+                        currentStackItem = i;
+                    }
                 }
                 final FullCard newCard = card;
                 new AlertDialog.Builder(context)
-                        .setSingleChoiceItems(items, 0, (dialog, which) -> {
+                        .setSingleChoiceItems(items, currentStackItem, (dialog, which) -> {
                             dialog.cancel();
                             newCard.getCard().setStackId(availableStacks.get(which).getStack().getLocalId());
                             LiveDataHelper.observeOnce(syncManager.updateCard(newCard), lifecycleOwner, (c) -> {
@@ -403,5 +430,9 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ItemCardViewHo
             super(binding.getRoot());
             this.binding = binding;
         }
+    }
+
+    public interface SelectCardListener {
+        void onCardSelected(FullCard fullCard);
     }
 }

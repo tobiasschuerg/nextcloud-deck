@@ -14,6 +14,7 @@
     <string name="simple_boards">Boards</string>
     <string name="simple_add">Add</string>
     <string name="simple_save">Save</string>
+    <string name="simple_more">More</string>
 
     <string name="edit_board">Edit board</string>
     <string name="archive_board">Archive board</string>
@@ -27,7 +28,7 @@
     <string name="about_maintainer_title">Maintainer</string>
     <string name="about_maintainer" translatable="false">Niedermann IT-Dienstleistungen</string>
     <string name="about_developers_title">Developers</string>
-    <string name="about_developers" translatable="false">Stefan Niedermann, Artur Dawtjan, Andy Scherzinger</string>
+    <string name="about_developers" translatable="false">Stefan Niedermann, Artur Dawtjan</string>
     <string name="about_translators_title">Translators</string>
     <string name="about_translators_transifex">Nextcloud community on %1$s</string>
     <string name="about_translators_transifex_label">Transifex</string>
@@ -63,7 +64,7 @@
     <string name="add_card">Add card</string>
     <string name="add_column">Add column</string>
 
-    <string name="attachment_count_max_value" translatable="false">+99</string>
+    <string name="counter_max_value" translatable="false">+99</string>
     <string name="add_account">Add account</string>
 
     <string name="label_menu">menu</string>
@@ -79,6 +80,7 @@
 
     <string name="label_add">Add %1$s</string>
     <string name="error">An error appeared</string>
+    <string name="operation_not_yet_supported">Not yet supported</string>
     <string name="simple_copy">copy</string>
     <string name="simple_exception">Exception</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
@@ -151,4 +153,18 @@
     <string name="please_add_an_account_first">Please add an account first</string>
     <string name="title_is_mandatory">Title is mandatory</string>
     <string name="provide_at_least_a_title_or_description">Provide at least a title or description</string>
+    <string name="welcome_text">Welcome to %1$s</string>
+    <string name="choose_account">Choose Account</string>
+    <string name="save_card_before_attachment">The card needs to be saved before attachments can be added.</string>
+    <string name="server_misconfigured">Server misconfigured</string>
+    <string name="server_misconfigured_explanation">Your server did respond with a HTTP 302 status code, which implies, that you do not have installed the Deck app on your server or something is misconfigured. This can be caused by custom overrides in a .htaccess-file or by Nextcloud apps like OID Client. You can find our contact information for support in the about-section.</string>
+    <string name="server_error">Server error</string>
+    <string name="server_error_explanation">Your server responded with a HTTP 503 status code. This can be the case if the server is currently in maintenance mode. Please contact your administrator or us for support. You can find our contact information in the about-section.</string>
+    <string name="share_add_to_card">Add to card</string>
+    <string name="share_success">Successfully added %1$s to %2$s</string>
+    <string name="could_not_copy_to_clipboard">Could not copy to clipboard</string>
+    <string name="shared_error">Sharing content from 3rd-party apps is not yet fully supported. Please try to download it first and then share it from you native file manager or gallery.</string>
+    <string name="add_comment">Add comment</string>
+    <string name="card_edit_comments">Comments</string>
+    <string name="no_comments_yet">No comments yet</string>
 </resources>

@@ -12,6 +12,7 @@
     <string name="simple_boards">Lavagne</string>
     <string name="simple_add">Aggiungi</string>
     <string name="simple_save">Salva</string>
+    <string name="simple_more">Altro</string>
 
     <string name="edit_board">Modifica lavagna</string>
     <string name="archive_board">Archivia lavagna</string>
@@ -38,6 +39,8 @@
     <string name="about_app_license">Questa applicazione è rilasciata nei termini della licenza GNU GENERAL PUBLIC LICENSE v3+.</string>
     <string name="about_app_license_button">Visualizza licenza</string>
     <string name="about_icons_disclaimer_title">Icone</string>
+    <string name="about_icons_disclaimer_app_icon">Per l\'icona originale, vedi %1$s.</string>
+    <string name="about_icons_disclaimer_mdi_icons">Tutte le altre icone utilizzate da questa applicazione sono %1$s realizzate da Google Inc. e rilasciate nei termini della licenza Apache 2.0.</string>
     <string name="about_icons_disclaimer_mdi">Icone Material Design</string>
     <string name="about_credits_tab_title">Riconoscimenti</string>
     <string name="about_contribution_tab_title">Contributi</string>
@@ -68,6 +71,7 @@
 
     <string name="label_add">Aggiungi %1$s</string>
     <string name="error">Si è verificato un errore</string>
+    <string name="operation_not_yet_supported">Non ancora supportato</string>
     <string name="simple_copy">copia</string>
     <string name="simple_exception">Eccezione</string>
     <string name="copied_to_clipboard">Copiato negli appunti</string>
@@ -128,4 +132,17 @@
     <string name="simple_disabled">disabilitato</string>
     <string name="simple_copied">Copiato</string>
     <string name="please_add_an_account_first">Aggiungi prima un account</string>
-</resources>
+    <string name="title_is_mandatory">Il titolo è obbligatorio</string>
+    <string name="provide_at_least_a_title_or_description">Fornisci almeno un titolo e una descrizione</string>
+    <string name="welcome_text">Benvenuto in %1$s</string>
+    <string name="choose_account">Scegli account</string>
+    <string name="save_card_before_attachment">La scheda deve essere salvata prima di poter aggiungere allegati.</string>
+    <string name="server_misconfigured">Configurazione server non corretta</string>
+    <string name="server_misconfigured_explanation">Il tuo server ha risposto con un codice di stato HTTP 302, che implica che non hai installato l\'applicazione Deck sul tuo server o qualcosa non è configurato correttamente. Questo può essere causata da configurazioni personalizzate nel file .htaccess o da applicazioni di Nextcloud come OID Client. Puoi trovare le nostre informazioni di contatto per supporto nella sezione Informazioni.</string>
+    <string name="server_error">Errore del server</string>
+    <string name="server_error_explanation">Il tuo server ha risposto con un codice di stato HTTP 503. Questo può verificarsi se il server è attualmente in modalità di manutenzione. Contatta il tuo amministratore o il nostro supporto. Puoi trovare le nostre informazioni di contatto nella sezione Informazioni.</string>
+    <string name="share_add_to_card">Aggiungi a scheda</string>
+    <string name="share_success">Aggiunto %1$s a %2$s correttamente</string>
+    <string name="could_not_copy_to_clipboard">Impossibile copiare negli appunti</string>
+    <string name="shared_error">La condivisione della condivisione di contenuti di applicazioni di terze parti non è ancora supportata. Prova a scaricarli prima e poi condividili dal gestore dei file nativo o dalla galleria.</string>
+    </resources>

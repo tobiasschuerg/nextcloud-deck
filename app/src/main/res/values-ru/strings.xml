@@ -12,6 +12,7 @@
     <string name="simple_boards">Рабочие доски</string>
     <string name="simple_add">Добавить</string>
     <string name="simple_save">Сохранить</string>
+    <string name="simple_more">Больше</string>
 
     <string name="edit_board">Редактировать доску</string>
     <string name="archive_board">Переместить доску в архив</string>
@@ -38,6 +39,8 @@
     <string name="about_app_license">Лицензия на программу предоставляется в соответствии с условиями Открытого лицензионного соглашения GNU (GNU GPL) версии 3+.</string>
     <string name="about_app_license_button">Посмотреть лицензию</string>
     <string name="about_icons_disclaimer_title">Значки</string>
+    <string name="about_icons_disclaimer_app_icon">Для просмотра оригинального значка, обратитесь к %1$s.</string>
+    <string name="about_icons_disclaimer_mdi_icons">Все дальнейшие значки, которые используются в этой программе, является частью набора «%1$s», созданного компанией Google Inc. и распространяемого в соответствии с лицензией Apache версии 2.0. </string>
     <string name="about_icons_disclaimer_mdi">значки Material Design</string>
     <string name="about_credits_tab_title">Сообщество</string>
     <string name="about_contribution_tab_title">Участие</string>
@@ -68,6 +71,7 @@
 
     <string name="label_add">Добавить %1$s </string>
     <string name="error">Произошла ошибка</string>
+    <string name="operation_not_yet_supported">Ещё не поддерживается</string>
     <string name="simple_copy">Копировать</string>
     <string name="simple_exception">Исключение</string>
     <string name="copied_to_clipboard">Скопировано в буфер</string>
@@ -128,4 +132,14 @@
     <string name="simple_disabled">отключено</string>
     <string name="simple_copied">Скопировано</string>
     <string name="please_add_an_account_first">Начните с добавления учётной записи</string>
-</resources>
+    <string name="title_is_mandatory">Требуется указать заголовок</string>
+    <string name="provide_at_least_a_title_or_description">Создайте заголовок или описание</string>
+    <string name="welcome_text">Добро пожаловать в %1$s</string>
+    <string name="choose_account">Выберите учётную запись</string>
+    <string name="save_card_before_attachment">Перед добавлением вложений карточку необходимо сохранить.</string>
+    <string name="server_misconfigured">Сервер не настроен</string>
+    <string name="server_error">Ошибка сервера</string>
+    <string name="share_add_to_card">Добавить в карточку</string>
+    <string name="share_success">%1$s добавлено в %2$s</string>
+    <string name="could_not_copy_to_clipboard">Не удалось скопировать в буфер обмена.</string>
+    </resources>

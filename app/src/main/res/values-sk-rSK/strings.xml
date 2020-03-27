@@ -12,6 +12,7 @@
     <string name="simple_boards">Nástenky</string>
     <string name="simple_add">Pridať</string>
     <string name="simple_save">Uložiť</string>
+    <string name="simple_more">Viac</string>
 
     <string name="edit_board">Upraviť nástenku</string>
     <string name="archive_board">Archivovať nástenku</string>
@@ -38,6 +39,8 @@
     <string name="about_app_license">Táto aplikácie je licencovaná pod GNU GENERAL PUBLIC LICENSE v3+.</string>
     <string name="about_app_license_button">Zobraziť licenciu</string>
     <string name="about_icons_disclaimer_title">Ikony</string>
+    <string name="about_icons_disclaimer_app_icon">Pôvodnú ikonu nájdete %1$s.</string>
+    <string name="about_icons_disclaimer_mdi_icons">Všetky ďalšie ikony, ktoré používa táto aplikácia, sú %1$s vyrobené spoločnosťou Google Inc. a licencované na základe licencie Apache 2.0 License.</string>
     <string name="about_icons_disclaimer_mdi">Ikony v štýle Material Design</string>
     <string name="about_credits_tab_title">Zásluhy</string>
     <string name="about_contribution_tab_title">Príspevok</string>
@@ -68,6 +71,7 @@
 
     <string name="label_add">Pridať %1$s</string>
     <string name="error">Vyskytla sa chyba</string>
+    <string name="operation_not_yet_supported">Zatiaľ nepodporované</string>
     <string name="simple_copy">kopírovať</string>
     <string name="simple_exception">Výnimka</string>
     <string name="copied_to_clipboard">Skopírované do schránky</string>
@@ -125,5 +129,20 @@
     <string name="hours_6">6 hodín</string>
     <string name="action_card_move">Presunúť kartu</string>
     <string name="action_card_move_title">Preusnúť %1$s</string>
+    <string name="simple_disabled">zakázané</string>
     <string name="simple_copied">Skopírované</string>
+    <string name="please_add_an_account_first">Najskôr pridajte účet</string>
+    <string name="title_is_mandatory">Názov je povinný</string>
+    <string name="provide_at_least_a_title_or_description">Uveďte aspoň názov alebo popis</string>
+    <string name="welcome_text">Vitajte v %1$s</string>
+    <string name="choose_account">Zvoliť účet</string>
+    <string name="save_card_before_attachment">Pred pridaním príloh je potrebné kartu uložiť.</string>
+    <string name="server_misconfigured">Server je nesprávne nakonfigurovaný</string>
+    <string name="server_misconfigured_explanation">Váš server odpovedal stavovým kódom HTTP 302, čo znamená, že na svojom serveri nemáte nainštalovanú aplikáciu Deck alebo je niečo nesprávne nastavené. Môže to byť spôsobené vlastnými prepismi v súbore .htaccess alebo aplikáciami Nextcloud, ako je OID Client. Naše kontaktné informácie pre podporu nájdete v časti uvedenej vyššie.</string>
+    <string name="server_error">Chyba servera</string>
+    <string name="server_error_explanation">Váš server odpovedal stavovým kódom HTTP 503. Môže sa to stať, ak je server v režime údržby. Ak potrebujete podporu, kontaktujte svojho správcu alebo nás. Naše kontaktné informácie nájdete v časti uvedenej vyššie.</string>
+    <string name="share_add_to_card">Pridať do košíka</string>
+    <string name="share_success">%1$s úspešne pridané do %2$s</string>
+    <string name="could_not_copy_to_clipboard">Nepodarilo sa skopírovať do schránky</string>
+    <string name="shared_error">Zdieľanie obsahu z aplikácií tretích strán zatiaľ nie je úplne podporované. Skúste si ho najprv stiahnuť a potom ho zdieľajte zo svojho správcu súborov alebo z galérie.</string>
     </resources>

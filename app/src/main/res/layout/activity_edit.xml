@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -35,6 +35,7 @@
                     android:importantForAutofill="no"
                     android:inputType="textMultiLine"
                     android:maxLength="100"
+                    android:maxLines="5"
                     app:theme="@style/AppTheme.EditText"
                     tools:text="Fancy card title" />
 
@@ -72,6 +73,7 @@
             android:layout_height="wrap_content"
             android:theme="@style/ThemeOverlay.AppCompat.Dark"
             app:tabGravity="center"
+            app:tabIconTint="@android:color/white"
             app:tabIndicatorColor="@color/accent"
             app:tabMode="fixed" />
     </com.google.android.material.appbar.AppBarLayout>

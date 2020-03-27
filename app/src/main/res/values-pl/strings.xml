@@ -12,6 +12,7 @@
     <string name="simple_boards">Tablice</string>
     <string name="simple_add">Dodaj</string>
     <string name="simple_save">Zapisz</string>
+    <string name="simple_more">Więcej</string>
 
     <string name="edit_board">Edytuj tablicę</string>
     <string name="archive_board">Zarchiwizuj tablicę</string>
@@ -38,6 +39,8 @@
     <string name="about_app_license">Ta aplikacja jest licencjonowana na podstawie GNU GENERAL PUBLIC LICENSE v3+.</string>
     <string name="about_app_license_button">Zobacz licencję</string>
     <string name="about_icons_disclaimer_title">Ikony</string>
+    <string name="about_icons_disclaimer_app_icon">Oryginalna ikona. Zobacz %1$s.</string>
+    <string name="about_icons_disclaimer_mdi_icons">Wszystkie pozostałe ikony używane przez tę aplikację są %1$s wykonane przez Google Inc. i licencjonowane na podstawie Apache 2.0 License.</string>
     <string name="about_icons_disclaimer_mdi">Material Design Icons</string>
     <string name="about_credits_tab_title">Autorzy</string>
     <string name="about_contribution_tab_title">Wkład</string>
@@ -68,6 +71,7 @@
 
     <string name="label_add">Dodaj %1$s</string>
     <string name="error">Wystąpił błąd</string>
+    <string name="operation_not_yet_supported">Jeszcze nie obsługiwane</string>
     <string name="simple_copy">kopiuj</string>
     <string name="simple_exception">Wyjątek</string>
     <string name="copied_to_clipboard">Skopiowano do schowka</string>
@@ -127,4 +131,18 @@
     <string name="action_card_move_title">Przenieś %1$s</string>
     <string name="simple_disabled">wyłączony</string>
     <string name="simple_copied">Skopiowano</string>
+    <string name="please_add_an_account_first">Najpierw dodaj konto</string>
+    <string name="title_is_mandatory">Tytuł jest obowiązkowy</string>
+    <string name="provide_at_least_a_title_or_description">Podaj co najmniej tytuł lub opis</string>
+    <string name="welcome_text">Witamy w %1$s</string>
+    <string name="choose_account">Wybierz konto</string>
+    <string name="save_card_before_attachment">Kartę należy zapisać przed dodaniem załączników.</string>
+    <string name="server_misconfigured">Serwer źle skonfigurowany</string>
+    <string name="server_misconfigured_explanation">Twój serwer odpowiedział kodem stanu HTTP 302, co oznacza, że nie masz zainstalowanej aplikacji Deck na serwerze lub coś jest źle skonfigurowane. Może to być spowodowane niestandardowymi przekierowaniami pliku .htaccess lub aplikacjami Nextcloud, takimi jak OID Client. Nasze informacje kontaktowe dotyczące wsparcia można znaleźć w dziale \"O nas\".</string>
+    <string name="server_error">Błąd serwera</string>
+    <string name="server_error_explanation">Twój serwer odpowiedział kodem stanu HTTP 503. Może się tak zdarzyć, jeśli serwer jest obecnie w trybie konserwacji. Skontaktuj się z administratorem lub z nami w celu uzyskania pomocy. Nasze dane kontaktowe znajdziesz w dziale \"O nas\".</string>
+    <string name="share_add_to_card">Dodaj do karty</string>
+    <string name="share_success">Pomyślnie dodano %1$s do %2$s</string>
+    <string name="could_not_copy_to_clipboard">Nie można skopiować do schowka</string>
+    <string name="shared_error">Udostępnianie treści z aplikacji innych firm nie jest jeszcze w pełni obsługiwane. Spróbuj najpierw pobrać, a następnie udostępnić ją obecnemu menedżerowi plików lub galerii.</string>
     </resources>
