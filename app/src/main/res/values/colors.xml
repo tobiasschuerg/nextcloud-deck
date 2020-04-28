@@ -2,11 +2,16 @@
 <resources>
     <color name="primary">#0082c9</color>
     <color name="accent">#ffffff</color>
+    <color name="toolbarEditTextHighlightColor">#55ffffff</color>
     <color name="danger">#d40000</color>
-    <color name="black">#000000</color>
     <color name="fg_accent">#fff</color>
+    <color name="fg_primary">#333</color>
     <color name="fg_secondary">#999</color>
+    <color name="bg_highlighted">#eee</color>
     <color name="grey600">#757575</color>
+    <color name="bg_info_box">#dddddd</color>
+
+    <color name="avatars_overlapping_border_color">#ffffff</color>
 
     <color name="dark_fg_primary">#e5e5e5</color>
 
@@ -14,7 +19,7 @@
     <!-- due date colors -->
     <color name="due_tomorrow">#7fffc53a</color>
     <color name="due_today">#7feca700</color>
-    <color name="due_overdue">#d40000</color>
+    <color name="due_overdue">#ef6e6b</color>
     <color name="overdue_text_color">#FFFFFF</color>
 
     <!-- board color picker colors -->

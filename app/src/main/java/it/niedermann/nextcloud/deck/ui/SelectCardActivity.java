@@ -1,7 +1,5 @@
 package it.niedermann.nextcloud.deck.ui;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -12,7 +10,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
 import java.io.File;
@@ -20,36 +17,36 @@ import java.util.Objects;
 
 import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.R;
-import it.niedermann.nextcloud.deck.model.Account;
 import it.niedermann.nextcloud.deck.model.Attachment;
 import it.niedermann.nextcloud.deck.model.Board;
 import it.niedermann.nextcloud.deck.model.full.FullCard;
-import it.niedermann.nextcloud.deck.ui.card.CardAdapter;
+import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
+import it.niedermann.nextcloud.deck.ui.card.SelectCardListener;
 import it.niedermann.nextcloud.deck.util.ExceptionUtil;
 import it.niedermann.nextcloud.deck.util.FileUtils;
 
-public class SelectCardActivity extends MainActivity implements CardAdapter.SelectCardListener {
+import static it.niedermann.nextcloud.deck.util.ClipboardUtil.copyToClipboard;
 
-    Intent receivedIntent;
-    String receivedAction;
-    String receivedType;
+public class SelectCardActivity extends MainActivity implements SelectCardListener {
 
-    boolean isFile;
+    private static final String MIMETYPE_TEXT_PREFIX = "text/";
 
-    String receivedText;
-    Uri receivedUri;
-    File uploadFile;
+    private boolean isFile;
+
+    private String receivedText;
+    private Uri receivedUri;
+    private File uploadFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
-            receivedIntent = getIntent();
-            receivedAction = receivedIntent.getAction();
-            receivedType = receivedIntent.getType();
+            final Intent receivedIntent = getIntent();
+            final String receivedAction = receivedIntent.getAction();
+            final String receivedType = receivedIntent.getType();
             DeckLog.info(receivedAction);
             DeckLog.info(receivedType);
-            isFile = !receivedType.startsWith("text/");
+            isFile = receivedType != null && !receivedType.startsWith(MIMETYPE_TEXT_PREFIX);
             if (isFile) {
                 receivedUri = receivedIntent.getParcelableExtra(Intent.EXTRA_STREAM);
                 if (receivedUri != null) {
@@ -63,7 +60,7 @@ public class SelectCardActivity extends MainActivity implements CardAdapter.Sele
                         }
                     } catch (IllegalArgumentException e) {
                         DeckLog.logError(e);
-                        new AlertDialog.Builder(this)
+                        new BrandedAlertDialogBuilder(this)
                                 .setTitle(R.string.error)
                                 .setMessage(R.string.operation_not_yet_supported)
                                 .setPositiveButton(R.string.simple_close, (a, b) -> finish())
@@ -99,17 +96,14 @@ public class SelectCardActivity extends MainActivity implements CardAdapter.Sele
     private void handleException(Throwable throwable) {
         DeckLog.logError(throwable);
         String debugInfos = ExceptionUtil.getDebugInfos(this, throwable);
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        AlertDialog dialog = new BrandedAlertDialogBuilder(this)
                 .setTitle(R.string.error)
                 .setMessage(debugInfos)
                 .setPositiveButton(android.R.string.copy, (a, b) -> {
-                    final ClipboardManager clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                    final ClipData clipData = ClipData.newPlainText(throwable.getMessage(), "```\n" + debugInfos + "\n```");
-                    Objects.requireNonNull(clipboardManager).setPrimaryClip(clipData);
-                    Toast.makeText(getApplicationContext(), R.string.copied_to_clipboard, Toast.LENGTH_LONG).show();
+                    copyToClipboard(this, throwable.getMessage(), "```\n" + debugInfos + "\n```");
                     finish();
                 })
-                .setNegativeButton(R.string.simple_close, (d, w) -> finish())
+                .setNeutralButton(R.string.simple_close, null)
                 .create();
         dialog.show();
         ((TextView) Objects.requireNonNull(dialog.findViewById(android.R.id.message))).setTypeface(Typeface.MONOSPACE);
@@ -133,17 +127,15 @@ public class SelectCardActivity extends MainActivity implements CardAdapter.Sele
     }
 
     @Override
-    protected void displayStacksForBoard(@Nullable Board board, @Nullable Account account) {
-        super.displayStacksForBoard(board, account);
+    protected void setCurrentBoard(@NonNull Board board) {
+        super.setCurrentBoard(board);
         binding.addStackButton.setVisibility(View.GONE);
         binding.fab.setVisibility(View.GONE);
         binding.toolbar.setTitle(R.string.simple_select);
     }
 
     @Override
-    protected void showFabIfEditPermissionGranted() {
-        // Do nothing
-    }
+    protected void showFabIfEditPermissionGranted() { /* Silence is gold */ }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -1,28 +1,37 @@
 package it.niedermann.nextcloud.deck.ui.settings;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.Nullable;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.SwitchPreference;
 
 import it.niedermann.nextcloud.deck.Application;
 import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.persistence.sync.SyncWorker;
+import it.niedermann.nextcloud.deck.ui.branding.Branded;
+import it.niedermann.nextcloud.deck.ui.branding.BrandedSwitchPreference;
 
-public class SettingsFragment extends PreferenceFragmentCompat {
+public class SettingsFragment extends PreferenceFragmentCompat implements Branded {
+
+    private BrandedSwitchPreference wifiOnlyPref;
+    private BrandedSwitchPreference themePref;
+    private BrandedSwitchPreference brandingPref;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.settings, rootKey);
 
-        final SwitchPreference wifiOnlyPref = findPreference(getString(R.string.pref_key_wifi_only));
+        wifiOnlyPref = findPreference(getString(R.string.pref_key_wifi_only));
+
         if (wifiOnlyPref != null) {
             wifiOnlyPref.setOnPreferenceChangeListener((Preference preference, Object newValue) -> {
-                Boolean syncOnWifiOnly = (Boolean) newValue;
+                final Boolean syncOnWifiOnly = (Boolean) newValue;
                 DeckLog.log("syncOnWifiOnly: " + syncOnWifiOnly);
                 return true;
             });
@@ -30,12 +39,25 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             DeckLog.error("Could not find preference with key: \"" + getString(R.string.pref_key_wifi_only) + "\"");
         }
 
-        final SwitchPreference themePref = findPreference(getString(R.string.pref_key_dark_theme));
+        themePref = findPreference(getString(R.string.pref_key_dark_theme));
         if (themePref != null) {
             themePref.setOnPreferenceChangeListener((Preference preference, Object newValue) -> {
-                Boolean darkTheme = (Boolean) newValue;
+                final Boolean darkTheme = (Boolean) newValue;
                 DeckLog.log("darkTheme: " + darkTheme);
                 Application.setAppTheme(darkTheme);
+                requireActivity().setResult(Activity.RESULT_OK);
+                requireActivity().recreate();
+                return true;
+            });
+        } else {
+            DeckLog.error("Could not find preference with key: \"" + getString(R.string.pref_key_dark_theme) + "\"");
+        }
+
+        brandingPref = findPreference(getString(R.string.pref_key_branding));
+        if (brandingPref != null) {
+            brandingPref.setOnPreferenceChangeListener((Preference preference, Object newValue) -> {
+                final Boolean branding = (Boolean) newValue;
+                DeckLog.log("branding: " + branding);
                 requireActivity().setResult(Activity.RESULT_OK);
                 requireActivity().recreate();
                 return true;
@@ -53,6 +75,23 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         } else {
             DeckLog.error("Could not find preference with key: \"" + getString(R.string.pref_key_background_sync) + "\"");
         }
+    }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        @Nullable Context context = getContext();
+        if (context != null) {
+            @ColorInt final int mainColor = Application.readBrandMainColor(context);
+            @ColorInt final int textColor = Application.readBrandTextColor(context);
+            applyBrand(mainColor, textColor);
+        }
+    }
+
+    @Override
+    public void applyBrand(int mainColor, int textColor) {
+        wifiOnlyPref.applyBrand(mainColor, textColor);
+        themePref.applyBrand(mainColor, textColor);
+        brandingPref.applyBrand(mainColor, textColor);
     }
 }

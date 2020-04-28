@@ -20,7 +20,6 @@ import com.nextcloud.android.sso.exceptions.NextcloudFilesAppNotInstalledExcepti
 import com.nextcloud.android.sso.exceptions.NextcloudHttpRequestFailedException;
 import com.nextcloud.android.sso.helper.SingleAccountHelper;
 import com.nextcloud.android.sso.model.SingleSignOnAccount;
-import com.nextcloud.android.sso.ui.UiExceptionManager;
 
 import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.R;
@@ -29,7 +28,6 @@ import it.niedermann.nextcloud.deck.databinding.ActivityImportAccountBinding;
 import it.niedermann.nextcloud.deck.exceptions.OfflineException;
 import it.niedermann.nextcloud.deck.model.Account;
 import it.niedermann.nextcloud.deck.model.ocs.Capabilities;
-import it.niedermann.nextcloud.deck.model.ocs.Version;
 import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
 import it.niedermann.nextcloud.deck.persistence.sync.SyncWorker;
 import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.WrappedLiveData;
@@ -37,6 +35,7 @@ import it.niedermann.nextcloud.deck.ui.exception.ExceptionHandler;
 import it.niedermann.nextcloud.deck.util.ExceptionUtil;
 
 import static com.nextcloud.android.sso.AccountImporter.REQUEST_AUTH_TOKEN_SSO;
+import static it.niedermann.nextcloud.deck.util.ExceptionUtil.handleHttpRequestFailedException;
 
 public class ImportAccountActivity extends AppCompatActivity {
 
@@ -48,10 +47,6 @@ public class ImportAccountActivity extends AppCompatActivity {
     private boolean originalWifiOnlyValue = false;
     private String sharedPreferenceLastAccount;
     private String urlFragmentUpdateDeck;
-    private int minimumServerAppMajor;
-    private int minimumServerAppMinor;
-    private int minimumServerAppPatch;
-
 
     private ActivityImportAccountBinding binding;
 
@@ -69,9 +64,6 @@ public class ImportAccountActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         sharedPreferenceLastAccount = getString(R.string.shared_preference_last_account);
         urlFragmentUpdateDeck = getString(R.string.url_fragment_update_deck);
-        minimumServerAppMajor = getResources().getInteger(R.integer.minimum_server_app_major);
-        minimumServerAppMinor = getResources().getInteger(R.integer.minimum_server_app_minor);
-        minimumServerAppPatch = getResources().getInteger(R.integer.minimum_server_app_patch);
 
         originalWifiOnlyValue = sharedPreferences.getBoolean(prefKeyWifiOnly, false);
 
@@ -84,11 +76,7 @@ public class ImportAccountActivity extends AppCompatActivity {
             try {
                 AccountImporter.pickNewAccount(this);
             } catch (NextcloudFilesAppNotInstalledException e) {
-                UiExceptionManager.showDialogForException(this, e);
-                binding.addButton.setEnabled(true);
-                DeckLog.warn("=============================================================");
-                DeckLog.warn("Nextcloud app is not installed. Cannot choose account");
-                e.printStackTrace();
+                ExceptionUtil.handleNextcloudFilesAppNotInstalledException(this, e);
             } catch (AndroidGetAccountsPermissionNotGranted e) {
                 binding.addButton.setEnabled(true);
                 AccountImporter.requestAndroidAccountPermissionsAndPickAccount(this);
@@ -142,25 +130,45 @@ public class ImportAccountActivity extends AppCompatActivity {
                                 editor.commit();
 
                                 try {
-                                    syncManager.getServerVersion(new IResponseCallback<Capabilities>(createdAccount) {
+                                    syncManager.refreshCapabilities(new IResponseCallback<Capabilities>(createdAccount) {
                                         @Override
                                         public void onResponse(Capabilities response) {
-                                            if (response.getDeckVersion().compareTo(new Version("", minimumServerAppMajor, minimumServerAppMinor, minimumServerAppPatch)) < 0) {
-                                                setStatusText(R.string.deck_outdated_please_update);
-                                                runOnUiThread(() -> {
-                                                    binding.updateDeckButton.setOnClickListener((v) -> {
-                                                        Intent openURL = new Intent(Intent.ACTION_VIEW);
-                                                        openURL.setData(Uri.parse(createdAccount.getUrl() + urlFragmentUpdateDeck));
-                                                        startActivity(openURL);
+                                            if (!response.isMaintenanceEnabled()) {
+                                                if (response.getDeckVersion().isSupported(getApplicationContext())) {
+                                                    syncManager.synchronize(new IResponseCallback<Boolean>(account) {
+                                                        @Override
+                                                        public void onResponse(Boolean response) {
+                                                            restoreWifiPref();
+                                                            SyncWorker.update(getApplicationContext());
+                                                            setResult(RESULT_OK);
+                                                            finish();
+                                                        }
+
+                                                        @Override
+                                                        public void onError(Throwable throwable) {
+                                                            super.onError(throwable);
+                                                            setStatusText(throwable.getMessage());
+                                                            if (throwable instanceof NextcloudHttpRequestFailedException) {
+                                                                runOnUiThread(() -> handleHttpRequestFailedException((NextcloudHttpRequestFailedException) throwable, binding.scrollView, ImportAccountActivity.this));
+                                                            }
+                                                            rollbackAccountCreation(syncManager, createdAccount.getId());
+                                                        }
                                                     });
-                                                    binding.updateDeckButton.setVisibility(View.VISIBLE);
-                                                });
-                                                rollbackAccountCreation(syncManager, createdAccount.getId());
+                                                } else {
+                                                    setStatusText(R.string.deck_outdated_please_update);
+                                                    runOnUiThread(() -> {
+                                                        binding.updateDeckButton.setOnClickListener((v) -> {
+                                                            Intent openURL = new Intent(Intent.ACTION_VIEW);
+                                                            openURL.setData(Uri.parse(createdAccount.getUrl() + urlFragmentUpdateDeck));
+                                                            startActivity(openURL);
+                                                        });
+                                                        binding.updateDeckButton.setVisibility(View.VISIBLE);
+                                                    });
+                                                    rollbackAccountCreation(syncManager, createdAccount.getId());
+                                                }
                                             } else {
-                                                restoreWifiPref();
-                                                SyncWorker.update(getApplicationContext());
-                                                setResult(RESULT_OK);
-                                                finish();
+                                                setStatusText(R.string.maintenance_mode);
+                                                rollbackAccountCreation(syncManager, createdAccount.getId());
                                             }
                                         }
 
@@ -169,7 +177,7 @@ public class ImportAccountActivity extends AppCompatActivity {
                                             super.onError(throwable);
                                             setStatusText(throwable.getMessage());
                                             if (throwable instanceof NextcloudHttpRequestFailedException) {
-                                                ExceptionUtil.handleHttpRequestFailedException((NextcloudHttpRequestFailedException) throwable, binding.scrollView, ImportAccountActivity.this);
+                                                runOnUiThread(() -> handleHttpRequestFailedException((NextcloudHttpRequestFailedException) throwable, binding.scrollView, ImportAccountActivity.this));
                                             }
                                             rollbackAccountCreation(syncManager, createdAccount.getId());
                                         }

@@ -21,7 +21,7 @@ An Android client for [Nextcloud Deck App](https://github.com/nextcloud/deck/).
       height="80">](https://f-droid.org/repository/browse/?fdid=it.niedermann.nextcloud.deck)
 [<img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png"
       alt="Donate with PayPal"
-      height="80">](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=W523CNHTD7ARQ&source=url)
+      height="80">](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZD39ZE7MGEGBL&source=url)
 [<img src="https://raw.githubusercontent.com/stefan-niedermann/DonateButtons/master/LiberaPay.png"
       alt="Donate using Liberapay"
       height="80">](https://liberapay.com/stefan-niedermann/donate)
@@ -35,17 +35,18 @@ An Android client for [Nextcloud Deck App](https://github.com/nextcloud/deck/).
 ## 🚀 Features
   * Multiple accounts 👥
   * Offline-capabilities 🔌
-  * Manage cards, columns and boards 📝
+  * Manage cards, lists and boards 📝
   * Supports attachments 📎
   * Supports activities ⚡
   * Dark mode 🌙
   * Translated in many languages 🌎
 
 ## 🏁 Planned features
-* Full [API](https://documenter.getpostman.com/view/4848351/RWMCtV4r) compatibility
-* [Support for comments](https://github.com/stefan-niedermann/nextcloud-deck/issues/207)
-* [Support for Android intents](https://github.com/stefan-niedermann/nextcloud-deck/issues/248)
-* Offline capabilities
+* [Widgets](https://github.com/stefan-niedermann/nextcloud-deck/issues/217)
+* [Manage tags per board](https://github.com/stefan-niedermann/nextcloud-deck/issues/309)
+* [Add more sources to upload attachments](https://github.com/stefan-niedermann/nextcloud-deck/issues/289)
+* Further stabilization of the UI and bugfixes
+* [Improve synchronization speed](https://github.com/nextcloud/deck/issues/1650)
 
 ## 👪 Join the team
 * Test the app with different devices

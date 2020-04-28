@@ -1,24 +1,22 @@
 package it.niedermann.nextcloud.deck.ui.card.comments;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ImageSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.TooltipCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -27,6 +25,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import it.niedermann.nextcloud.deck.R;
@@ -36,31 +35,33 @@ import it.niedermann.nextcloud.deck.model.enums.DBStatus;
 import it.niedermann.nextcloud.deck.model.ocs.comment.DeckComment;
 import it.niedermann.nextcloud.deck.model.ocs.comment.Mention;
 import it.niedermann.nextcloud.deck.util.DateUtil;
+import it.niedermann.nextcloud.deck.util.DimensionUtil;
 import it.niedermann.nextcloud.deck.util.ViewUtil;
 
-import static android.content.Context.CLIPBOARD_SERVICE;
-import static androidx.constraintlayout.widget.Constraints.TAG;
-import static it.niedermann.nextcloud.deck.util.DimensionUtil.getAvatarDimension;
+import static it.niedermann.nextcloud.deck.Application.readBrandMainColor;
+import static it.niedermann.nextcloud.deck.ui.branding.BrandedActivity.getSecondaryForegroundColorDependingOnTheme;
+import static it.niedermann.nextcloud.deck.util.ClipboardUtil.copyToClipboard;
 
-public class CardCommentsAdapter extends RecyclerView.Adapter<CardCommentsAdapter.ItemCommentViewHolder> {
+public class CardCommentsAdapter extends RecyclerView.Adapter<ItemCommentViewHolder> {
 
+    private int mainColor;
     @NonNull
-    private final Context context;
-    @NonNull
-    private final List<DeckComment> comments;
+    private final List<DeckComment> comments = new ArrayList<>();
     @NonNull
     private final Account account;
     @NonNull
     private final MenuInflater menuInflater;
     @NonNull
     private final CommentDeletedListener commentDeletedListener;
+    @NonNull
+    private final FragmentManager fragmentManager;
 
-    CardCommentsAdapter(@NonNull Context context, @NonNull List<DeckComment> comments, @NonNull Account account, @NonNull MenuInflater menuInflater, @NonNull CommentDeletedListener commentDeletedListener) {
-        this.context = context;
-        this.comments = comments;
+    CardCommentsAdapter(@NonNull Context context, @NonNull Account account, @NonNull MenuInflater menuInflater, @NonNull CommentDeletedListener commentDeletedListener, @NonNull FragmentManager fragmentManager) {
         this.account = account;
         this.menuInflater = menuInflater;
         this.commentDeletedListener = commentDeletedListener;
+        this.fragmentManager = fragmentManager;
+        this.mainColor = getSecondaryForegroundColorDependingOnTheme(context, readBrandMainColor(context));
         setHasStableIds(true);
     }
 
@@ -77,41 +78,41 @@ public class CardCommentsAdapter extends RecyclerView.Adapter<CardCommentsAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ItemCommentViewHolder holder, int position) {
-        DeckComment comment = comments.get(position);
-        ViewUtil.addAvatar(context, holder.binding.avatar, account.getUrl(), account.getUserName(), getAvatarDimension(context, R.dimen.icon_size_details), R.drawable.ic_person_grey600_24dp);
+        final Context context = holder.itemView.getContext();
+        final DeckComment comment = comments.get(position);
+
+        ViewUtil.addAvatar(holder.binding.avatar, account.getUrl(), comment.getActorId(), DimensionUtil.dpToPx(context, R.dimen.icon_size_details), R.drawable.ic_person_grey600_24dp);
         holder.binding.message.setText(comment.getMessage());
         holder.binding.actorDisplayName.setText(comment.getActorDisplayName());
         holder.binding.creationDateTime.setText(DateUtil.getRelativeDateTimeString(context, comment.getCreationDateTime().getTime()));
-        holder.binding.getRoot().setOnClickListener(View::showContextMenu);
-        holder.binding.getRoot().setOnCreateContextMenuListener((menu, v, menuInfo) -> {
+        holder.itemView.setOnClickListener(View::showContextMenu);
+        holder.itemView.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
             menuInflater.inflate(R.menu.comment_menu, menu);
-            menu.findItem(android.R.id.copy).setOnMenuItemClickListener(item -> {
-                final ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(CLIPBOARD_SERVICE);
-                ClipData clipData = ClipData.newPlainText(comment.getMessage(), comment.getMessage());
-                if (clipboardManager == null) {
-                    Log.e(TAG, "clipboardManager is null");
-                    Toast.makeText(context, R.string.could_not_copy_to_clipboard, Toast.LENGTH_SHORT).show();
-                    return false;
-                }
-                clipboardManager.setPrimaryClip(clipData);
-                Toast.makeText(context, R.string.simple_copied, Toast.LENGTH_SHORT).show();
-                return true;
-            });
-            menu.findItem(R.id.delete).setOnMenuItemClickListener(item -> {
-                commentDeletedListener.onCommentDeleted(comment.getLocalId());
-                return true;
-            });
+            menu.findItem(android.R.id.copy).setOnMenuItemClickListener(item -> copyToClipboard(context, comment.getMessage()));
+            if (account.getUserName().equals(comment.getActorId())) {
+                menu.findItem(R.id.delete).setOnMenuItemClickListener(item -> {
+                    commentDeletedListener.onCommentDeleted(comment.getLocalId());
+                    return true;
+                });
+                menu.findItem(android.R.id.edit).setOnMenuItemClickListener(item -> {
+                    CardCommentsEditDialogFragment.newInstance(comment.getLocalId(), comment.getMessage()).show(fragmentManager, CardCommentsAdapter.class.getCanonicalName());
+                    return true;
+                });
+            } else {
+                menu.findItem(R.id.delete).setVisible(false);
+                menu.findItem(android.R.id.edit).setVisible(false);
+            }
         });
 
-        if (DBStatus.LOCAL_EDITED.equals(comment.getStatusEnum())) {
-            holder.binding.notSyncedYet.setVisibility(View.VISIBLE);
-        }
+        DrawableCompat.setTint(holder.binding.notSyncedYet.getDrawable(), mainColor);
+        holder.binding.notSyncedYet.setVisibility(DBStatus.LOCAL_EDITED.equals(comment.getStatusEnum()) ? View.VISIBLE : View.GONE);
 
         TooltipCompat.setTooltipText(holder.binding.creationDateTime, DateFormat.getDateTimeInstance().format(comment.getCreationDateTime()));
         setupMentions(comment.getMentions(), holder.binding.message);
     }
 
     private void setupMentions(List<Mention> mentions, TextView tv) {
+        Context context = tv.getContext();
         SpannableStringBuilder messageBuilder = new SpannableStringBuilder(tv.getText());
 
         // Step 1
@@ -137,7 +138,7 @@ public class CardCommentsAdapter extends RecyclerView.Adapter<CardCommentsAdapte
             Glide.with(context)
                     .asBitmap()
                     .placeholder(R.drawable.ic_person_grey600_24dp)
-                    .load(account.getUrl() + "/index.php/avatar/" + messageBuilder.subSequence(spanStart + 1, spanEnd).toString() + "/" + getAvatarDimension(context, R.dimen.icon_size_details))
+                    .load(account.getUrl() + "/index.php/avatar/" + messageBuilder.subSequence(spanStart + 1, spanEnd).toString() + "/" + DimensionUtil.dpToPx(context, R.dimen.icon_size_details))
                     .apply(RequestOptions.circleCropTransform())
                     .into(new CustomTarget<Bitmap>() {
                         @Override
@@ -155,18 +156,15 @@ public class CardCommentsAdapter extends RecyclerView.Adapter<CardCommentsAdapte
         tv.setText(messageBuilder);
     }
 
+    @SuppressWarnings("WeakerAccess")
+    public void updateComments(@NonNull List<DeckComment> comments) {
+        this.comments.clear();
+        this.comments.addAll(comments);
+        notifyDataSetChanged();
+    }
 
     @Override
     public int getItemCount() {
         return comments.size();
-    }
-
-    static class ItemCommentViewHolder extends RecyclerView.ViewHolder {
-        private ItemCommentBinding binding;
-
-        private ItemCommentViewHolder(ItemCommentBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
-        }
     }
 }

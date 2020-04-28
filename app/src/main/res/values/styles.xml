@@ -1,73 +1,42 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar.Bridge">
+    <!-- Default is a light theme with the dark blue brand -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary</item>
         <item name="colorAccent">@color/primary</item>
+        <item name="toolbarEditTextColor">@android:color/white</item>
+        <item name="toolbarEditTextHighlightColor">@color/toolbarEditTextHighlightColor</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:elevation" tools:targetApi="lollipop">@null</item>
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="AppTheme.EditText" parent="ThemeOverlay.MaterialComponents.Dark">
-        <item name="colorControlNormal">@android:color/white</item>
-        <item name="colorControlActivated">@android:color/white</item>
-        <item name="colorControlHighlight">@android:color/white</item>
+    <!-- This is a light theme with a bright brand color like yellow -->
+    <style name="AppThemeLightBrand" parent="AppTheme">
+        <item name="toolbarEditTextColor">@android:color/black</item>
     </style>
 
-    <style name="DarkAppTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary</item>
-        <item name="colorAccent">@color/primary</item>
-        <item name="android:textColor">@color/fg_secondary</item>
-        <item name="android:textViewStyle">@style/DarkTextView</item>
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+    <!-- This styles an EditText which is on a primary background like in the toolbar -->
+    <style name="EditTextOnPrimaryBackground" parent="ThemeOverlay.MaterialComponents.Dark">
+        <item name="android:textColor">?toolbarEditTextColor</item>
+        <item name="android:textColorHighlight">?toolbarEditTextHighlightColor</item>
+        <item name="colorControlNormal">?toolbarEditTextColor</item>
+        <item name="colorControlActivated">?toolbarEditTextColor</item>
+        <item name="colorControlHighlight">?toolbarEditTextColor</item>
     </style>
 
     <style name="DarkTextView" parent="Widget.AppCompat.TextView">
         <item name="android:textColor">@color/dark_fg_primary</item>
     </style>
 
-    <style name="SplashTheme" parent="AppTheme">
+    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@drawable/splash_screen</item>
-    </style>
-
-    <style name="PrimaryCTAButton" parent="android:Widget.DeviceDefault.Button">
-        <item name="android:background">@color/primary</item>
-        <item name="android:textColor">@color/fg_accent</item>
-        <item name="android:elevation" tools:targetApi="lollipop">5dp</item>
+        <item name="colorPrimaryDark">@color/primary</item>
     </style>
 
     <style name="NavigationView">
         <item name="android:ellipsize">middle</item>
         <item name="android:listDivider">@null</item>
-    </style>
-
-    <style name="DialogDarkTheme" parent="ThemeOverlay.AppCompat.Dialog.Alert">
-        <item name="android:background">@android:color/background_dark</item>
-    </style>
-
-    <style name="DeleteDialogDarkTheme" parent="DialogDarkTheme">
-        <item name="android:buttonBarPositiveButtonStyle" tools:targetApi="lollipop">
-            @style/PositiveButtonStyle
-        </item>
-    </style>
-
-    <style name="DeleteDialogTheme" parent="ThemeOverlay.AppCompat.Dialog.Alert">
-        <item name="android:buttonBarPositiveButtonStyle" tools:targetApi="lollipop">
-            @style/PositiveButtonStyle
-        </item>
-    </style>
-
-    <style name="PositiveButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
-        <item name="android:textColor">@color/danger</item>
-    </style>
-
-    <style name="Spinner" parent="ThemeOverlay.AppCompat.Dark">
-        <item name="android:textColor">@android:color/white</item>
     </style>
 
     <style name="TransparentTheme" parent="Theme.AppCompat.NoActionBar">

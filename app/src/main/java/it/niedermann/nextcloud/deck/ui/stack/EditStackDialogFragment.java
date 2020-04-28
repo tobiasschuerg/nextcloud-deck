@@ -15,24 +15,21 @@ import androidx.fragment.app.DialogFragment;
 
 import java.util.Objects;
 
-import it.niedermann.nextcloud.deck.Application;
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.DialogStackCreateBinding;
+import it.niedermann.nextcloud.deck.ui.branding.BrandedActivity;
+import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
+import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
 
-public class EditStackDialogFragment extends DialogFragment {
-    public static final Long NO_STACK_ID = -1L;
+import static it.niedermann.nextcloud.deck.Application.NO_STACK_ID;
+
+public class EditStackDialogFragment extends BrandedDialogFragment {
     private static final String KEY_STACK_ID = "board_id";
     private static final String KEY_OLD_TITLE = "old_title";
     private long stackId = NO_STACK_ID;
     private EditStackListener editStackListener;
 
     private DialogStackCreateBinding binding;
-
-    /**
-     * Use newInstance()-Method
-     */
-    public EditStackDialogFragment() {
-    }
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -49,21 +46,19 @@ public class EditStackDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         binding = DialogStackCreateBinding.inflate(requireActivity().getLayoutInflater());
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity(), Application.getAppTheme(getContext()) ? R.style.DialogDarkTheme : R.style.ThemeOverlay_AppCompat_Dialog_Alert)
+        AlertDialog.Builder builder = new BrandedAlertDialogBuilder(requireActivity())
                 .setView(binding.getRoot())
-                .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
-                    // Do something else
-                });
+                .setNeutralButton(android.R.string.cancel, null);
         if (getArguments() == null) {
             throw new IllegalArgumentException("Please add at least stack id to the arguments");
         }
         stackId = getArguments().getLong(KEY_STACK_ID);
         if (stackId == NO_STACK_ID) {
-            builder.setTitle(R.string.add_column)
+            builder.setTitle(R.string.add_list)
                     .setPositiveButton(R.string.simple_add, (dialog, which) -> editStackListener.onCreateStack(binding.input.getText().toString()));
         } else {
             binding.input.setText(getArguments().getString(KEY_OLD_TITLE));
-            builder.setTitle(R.string.rename_column)
+            builder.setTitle(R.string.rename_list)
                     .setPositiveButton(R.string.simple_rename, (dialog, which) -> editStackListener.onUpdateStack(stackId, binding.input.getText().toString()));
         }
         return builder.create();
@@ -77,24 +72,25 @@ public class EditStackDialogFragment extends DialogFragment {
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
-    public static EditStackDialogFragment newInstance(long stackId) {
+    public static DialogFragment newInstance(long stackId) {
         return newInstance(stackId, null);
     }
 
-    public static EditStackDialogFragment newInstance(long stackId, String oldTitle) {
-        EditStackDialogFragment dialog = new EditStackDialogFragment();
+    public static DialogFragment newInstance(long stackId, @Nullable String oldTitle) {
+        final DialogFragment dialog = new EditStackDialogFragment();
 
-        Bundle args = new Bundle();
+        final Bundle args = new Bundle();
         args.putLong(KEY_STACK_ID, stackId);
-        args.putString(KEY_OLD_TITLE, oldTitle);
+        if (oldTitle != null) {
+            args.putString(KEY_OLD_TITLE, oldTitle);
+        }
         dialog.setArguments(args);
 
         return dialog;
     }
 
-    public interface EditStackListener {
-        void onCreateStack(String title);
-
-        void onUpdateStack(long stackId, String title);
+    @Override
+    public void applyBrand(int mainColor, int textColor) {
+        BrandedActivity.applyBrandToEditText(mainColor, textColor, binding.input);
     }
 }

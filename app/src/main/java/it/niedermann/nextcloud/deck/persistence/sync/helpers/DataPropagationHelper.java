@@ -38,7 +38,7 @@ public class DataPropagationHelper {
                             actionOnResponse.onResponse(entity, response);
                         }
                         response.setStatus(DBStatus.UP_TO_DATE.getId());
-                        provider.updateInDB(dataBaseAdapter, accountId, response);
+                        provider.updateInDB(dataBaseAdapter, accountId, response, false);
                         callback.onResponse(response);
                     }).start();
                 }
@@ -46,9 +46,7 @@ public class DataPropagationHelper {
                 @Override
                 public void onError(Throwable throwable) {
                     super.onError(throwable);
-                    new Thread(() -> {
-                        callback.onError(throwable);
-                    }).start();
+                    new Thread(() -> callback.onError(throwable)).start();
                 }
             }, entity);
         } else {
@@ -84,7 +82,7 @@ public class DataPropagationHelper {
             callback.onResponse(entity);
         }
     }
-    public <T extends IRemoteEntity> void deleteEntity(final AbstractSyncDataProvider<T> provider, T entity, IResponseCallback<T> callback){
+    public <T extends IRemoteEntity> void deleteEntity(final AbstractSyncDataProvider<T> provider, T entity, IResponseCallback<Void> callback){
         final long accountId = callback.getAccount().getId();
         provider.deleteInDB(dataBaseAdapter, accountId, entity);
         boolean connected = serverAdapter.hasInternetConnection();

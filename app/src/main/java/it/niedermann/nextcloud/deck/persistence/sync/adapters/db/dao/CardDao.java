@@ -3,7 +3,9 @@ package it.niedermann.nextcloud.deck.persistence.sync.adapters.db.dao;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Query;
+import androidx.room.RawQuery;
 import androidx.room.Transaction;
+import androidx.sqlite.db.SupportSQLiteQuery;
 
 import java.util.List;
 
@@ -34,6 +36,10 @@ public interface CardDao extends GenericDao<Card> {
     @Query("SELECT * FROM card WHERE accountId = :accountId AND stackId = :localStackId and status<>3 order by `order`, createdAt asc")
     LiveData<List<FullCard>> getFullCardsForStack(final long accountId, final long localStackId);
 
+    @Transaction                                                                                // v not deleted!
+    @RawQuery(observedEntities = Card.class)
+    LiveData<List<FullCard>> getFilteredFullCardsForStack(SupportSQLiteQuery query);
+
     @Transaction
     @Query("SELECT * FROM card WHERE accountId = :accountId AND stackId = :localStackId order by `order`, createdAt asc")
     List<FullCard> getFullCardsForStackDirectly(final long accountId, final long localStackId);
@@ -59,4 +65,7 @@ public interface CardDao extends GenericDao<Card> {
 
     @Query("SELECT * FROM card c WHERE accountId = :accountId and exists ( select 1 from DeckComment dc where dc.objectId = c.localId and dc.status<>1)")
     List<Card> getCardsWithLocallyChangedCommentsDirectly(Long accountId);
+
+    @Query("SELECT count(*) FROM card c WHERE accountId = :accountId and stackId = :localStackId and status <> 3")
+    LiveData<Integer> countCardsInStack(long accountId, long localStackId);
 }
