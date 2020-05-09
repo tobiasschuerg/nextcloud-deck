@@ -1,31 +1,16 @@
 package it.niedermann.nextcloud.deck.ui;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import it.niedermann.nextcloud.deck.model.Account;
 import it.niedermann.nextcloud.deck.model.Board;
-import it.niedermann.nextcloud.deck.model.internal.FilterInformation;
 
 @SuppressWarnings("WeakerAccess")
 public class MainViewModel extends ViewModel {
 
-    @NonNull
-    private MutableLiveData<FilterInformation> filterInformation = new MutableLiveData<>();
     private Account currentAccount;
     private Board currentBoard;
-
-    public void postFilterInformation(@Nullable FilterInformation filterInformation) {
-        this.filterInformation.postValue(filterInformation);
-    }
-
-    @NonNull
-    public LiveData<FilterInformation> getFilterInformation() {
-        return this.filterInformation;
-    }
+    private boolean currentAccountHasArchivedBoards = false;
 
     public Account getCurrentAccount() {
         return currentAccount;
@@ -45,5 +30,13 @@ public class MainViewModel extends ViewModel {
 
     public boolean currentBoardHasEditPermission() {
         return this.currentBoard != null && this.currentBoard.isPermissionEdit();
+    }
+
+    public boolean currentAccountHasArchivedBoards() {
+        return currentAccountHasArchivedBoards;
+    }
+
+    public void setCurrentAccountHasArchivedBoards(boolean currentAccountHasArchivedBoards) {
+        this.currentAccountHasArchivedBoards = currentAccountHasArchivedBoards;
     }
 }
