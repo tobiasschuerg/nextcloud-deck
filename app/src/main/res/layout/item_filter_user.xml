@@ -6,20 +6,19 @@
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
     android:orientation="horizontal"
-    android:padding="@dimen/spacer_1x">
+    android:paddingTop="@dimen/spacer_1x"
+    android:paddingBottom="@dimen/spacer_1x">
 
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/spacer_1hx"
-        android:layout_marginRight="@dimen/spacer_1hx">
+        android:layout_marginEnd="@dimen/spacer_1hx">
 
         <ImageView
             android:id="@+id/avatar"
             android:layout_width="@dimen/avatar_size"
             android:layout_height="@dimen/avatar_size"
             android:layout_marginEnd="10dp"
-            android:layout_marginRight="10dp"
             android:contentDescription="@null"
             app:srcCompat="@drawable/ic_person_grey600_24dp"
             tools:srcCompat="@tools:sample/avatars" />
@@ -28,7 +27,7 @@
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:layout_gravity="end|bottom"
-            android:background="@drawable/selected" />
+            app:srcCompat="@drawable/selected" />
     </FrameLayout>
 
     <TextView
@@ -36,7 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:textSize="16sp"
+        android:textAppearance="?attr/textAppearanceListItem"
         tools:text="@tools:sample/full_names" />
 
 </LinearLayout>

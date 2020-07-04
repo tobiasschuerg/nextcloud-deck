@@ -3,6 +3,7 @@ package it.niedermann.nextcloud.deck.util;
 import android.graphics.Color;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 
@@ -32,6 +33,49 @@ public final class ColorUtil {
             FOREGROUND_CACHE.put(color, ret);
         }
         return ret;
+    }
+
+    /**
+     * @return well formatted string starting with a hash followed by 6 hex numbers that is parsable by {@link Color#parseColor(String)}.
+     */
+    public static String formatColorToParsableHexString(String input) {
+        if (input == null) {
+            throw new IllegalArgumentException("input color string is null");
+        }
+        if (isParsableValidHexColorString(input)) {
+            return input;
+        }
+        final char[] chars = input.replaceAll("#", "").toCharArray();
+        final StringBuilder sb = new StringBuilder(7).append("#");
+        if (chars.length == 6) {
+            sb.append(chars);
+        } else if (chars.length == 3) {
+            for (char c : chars) {
+                sb.append(c).append(c);
+            }
+        } else {
+            throw new IllegalArgumentException("unparsable color string: \"" + input + "\"");
+        }
+        final String formattedHexColor = sb.toString();
+        if (isParsableValidHexColorString(formattedHexColor)) {
+            return formattedHexColor;
+        } else {
+            throw new IllegalArgumentException("\"" + input + "\" is not a valid color string. Result of tried normalizing: " + formattedHexColor);
+        }
+    }
+
+    /**
+     * Checking for {@link Color#parseColor(String)} being able to parse the input is the important part because we don't know the implementation and rely on it to be able to parse the color.
+     *
+     * @return true, if the input starts with a hash followed by 6 characters of hex numbers and is parsable by {@link Color#parseColor(String)}.
+     */
+    private static boolean isParsableValidHexColorString(@NonNull String input) {
+        try {
+            Color.parseColor(input);
+            return input.matches("#[a-fA-F0-9]{6}");
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static boolean isColorDark(@ColorInt int color) {
@@ -65,7 +109,18 @@ public final class ColorUtil {
         return ret;
     }
 
-    private static double getContrastRatio(@ColorInt int colorOne, @ColorInt int colorTwo) {
+    public static boolean contrastRatioIsSufficientBigAreas(@ColorInt int colorOne, @ColorInt int colorTwo) {
+        ColorPair key = new ColorPair(colorOne, colorTwo);
+        Boolean ret = CONTRAST_RATIO_SUFFICIENT_CACHE.get(key);
+        if (ret == null) {
+            ret = getContrastRatio(colorOne, colorTwo) > 1.47d;
+            CONTRAST_RATIO_SUFFICIENT_CACHE.put(key, ret);
+            return ret;
+        }
+        return ret;
+    }
+
+    public static double getContrastRatio(@ColorInt int colorOne, @ColorInt int colorTwo) {
         final double lum1 = getLuminanace(colorOne);
         final double lum2 = getLuminanace(colorTwo);
         final double brightest = Math.max(lum1, lum2);

@@ -12,9 +12,8 @@
         android:id="@+id/date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="52dp"
-        android:layout_marginLeft="52dp"
-        android:textColor="@color/fg_secondary"
+        android:layout_marginStart="56dp"
+        android:textAppearance="?attr/textAppearanceListItemSecondary"
         tools:text="4 days ago" />
 
     <LinearLayout
@@ -27,13 +26,13 @@
             android:layout_width="@dimen/avatar_size"
             android:layout_height="@dimen/avatar_size"
             android:layout_marginEnd="@dimen/spacer_2x"
-            android:layout_marginRight="@dimen/spacer_2x"
             app:srcCompat="@drawable/type_change_36dp" />
 
         <TextView
             android:id="@+id/subject"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceListItem"
             tools:maxLength="150"
             tools:text="@tools:sample/lorem/random" />
     </LinearLayout>

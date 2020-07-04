@@ -13,8 +13,15 @@ import it.niedermann.nextcloud.deck.model.full.FullBoard;
 @Dao
 public interface BoardDao extends GenericDao<Board> {
 
-    @Query("SELECT * FROM board WHERE accountId = :accountId and (deletedAt = 0 or deletedAt is null) and status <> 3 order by title asc")
-    LiveData<List<Board>> getBoardsForAccount(final long accountId);
+    @Query("SELECT * FROM board WHERE accountId = :accountId and archived = 1 and (deletedAt = 0 or deletedAt is null) and status <> 3 order by title asc")
+    LiveData<List<Board>> getArchivedBoardsForAccount(final long accountId);
+
+    @Query("SELECT * FROM board WHERE accountId = :accountId and archived = 0 and (deletedAt = 0 or deletedAt is null) and status <> 3 order by title asc")
+    LiveData<List<Board>> getNonArchivedBoardsForAccount(final long accountId);
+
+    @Transaction
+    @Query("SELECT * FROM board WHERE accountId = :accountId and archived = :archived and (deletedAt = 0 or deletedAt is null) and status <> 3 order by title asc")
+    LiveData<List<FullBoard>> getArchivedFullBoards(long accountId, int archived);
 
     @Query("SELECT * FROM board WHERE accountId = :accountId and id = :remoteId")
     LiveData<Board> getBoardByRemoteId(final long accountId, final long remoteId);
@@ -45,11 +52,14 @@ public interface BoardDao extends GenericDao<Board> {
     @Query("SELECT b.* FROM board b JOIN stack s ON s.boardId = b.localId JOIN card c ON c.localId = :localCardId")
     Board getBoardByLocalCardIdDirectly(long localCardId);
 
+    @Query("SELECT b.* FROM board b JOIN stack s ON s.boardId = b.localId JOIN card c ON c.localId = :localCardId")
+    FullBoard getFullBoardByLocalCardIdDirectly(long localCardId);
+
     @Transaction
     @Query("SELECT * FROM board WHERE accountId = :accountId")
     List<FullBoard> getAllFullBoards(long accountId);
 
-    @Query("SELECT * FROM board WHERE accountId = :accountId and permissionEdit = 1 and (deletedAt = 0 or deletedAt is null) and status <> 3 order by title asc")
+    @Query("SELECT * FROM board WHERE accountId = :accountId and archived = 0 and permissionEdit = 1 and (deletedAt = 0 or deletedAt is null) and status <> 3 order by title asc")
     LiveData<List<Board>> getBoardsWithEditPermissionsForAccount(long accountId);
 
 
@@ -59,4 +69,7 @@ public interface BoardDao extends GenericDao<Board> {
             "inner join board b on s.boardId = b.localId " +
             "WHERE c.id = :cardRemoteId and c.accountId =  :accountId")
     LiveData<Long> getLocalBoardIdByCardRemoteIdAndAccountId(long cardRemoteId, long accountId);
+
+    @Query("SELECT count(*) FROM board WHERE accountId = :accountId and archived = 1 and (deletedAt = 0 or deletedAt is null) and status <> 3")
+    LiveData<Integer> countArchivedBoards(long accountId);
 }

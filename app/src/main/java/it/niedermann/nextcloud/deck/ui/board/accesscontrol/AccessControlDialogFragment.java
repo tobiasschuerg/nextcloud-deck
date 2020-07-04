@@ -6,12 +6,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
@@ -24,13 +25,15 @@ import it.niedermann.nextcloud.deck.model.full.FullBoard;
 import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
 import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.WrappedLiveData;
 import it.niedermann.nextcloud.deck.ui.MainViewModel;
-import it.niedermann.nextcloud.deck.ui.branding.BrandedActivity;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedDialogFragment;
+import it.niedermann.nextcloud.deck.ui.branding.BrandedSnackbar;
 import it.niedermann.nextcloud.deck.ui.card.UserAutoCompleteAdapter;
+import it.niedermann.nextcloud.deck.ui.exception.ExceptionDialogFragment;
 
 import static it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.LiveDataHelper.observeOnce;
 import static it.niedermann.nextcloud.deck.ui.board.accesscontrol.AccessControlAdapter.HEADER_ITEM_LOCAL_ID;
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditText;
 
 public class AccessControlDialogFragment extends BrandedDialogFragment implements AccessControlChangedListener, OnItemClickListener {
 
@@ -69,7 +72,7 @@ public class AccessControlDialogFragment extends BrandedDialogFragment implement
         final AlertDialog.Builder dialogBuilder = new BrandedAlertDialogBuilder(requireContext());
 
         binding = DialogBoardShareBinding.inflate(requireActivity().getLayoutInflater());
-        adapter = new AccessControlAdapter(this, requireContext());
+        adapter = new AccessControlAdapter(viewModel.getCurrentAccount(), this, requireContext());
         binding.peopleList.setAdapter(adapter);
 
         syncManager = new SyncManager(requireActivity());
@@ -80,7 +83,7 @@ public class AccessControlDialogFragment extends BrandedDialogFragment implement
                     ownerControl.setLocalId(HEADER_ITEM_LOCAL_ID);
                     ownerControl.setUser(fullBoard.getOwner());
                     accessControlList.add(0, ownerControl);
-                    adapter.update(accessControlList);
+                    adapter.update(accessControlList, fullBoard.getBoard().isPermissionManage());
                     userAutoCompleteAdapter = new UserAutoCompleteAdapter(requireActivity(), viewModel.getCurrentAccount(), boardId);
                     binding.people.setAdapter(userAutoCompleteAdapter);
                     binding.people.setOnItemClickListener(this);
@@ -92,6 +95,7 @@ public class AccessControlDialogFragment extends BrandedDialogFragment implement
             }
         });
         return dialogBuilder
+                .setTitle(R.string.share_board)
                 .setView(binding.getRoot())
                 .setPositiveButton(R.string.simple_close, null)
                 .create();
@@ -108,8 +112,10 @@ public class AccessControlDialogFragment extends BrandedDialogFragment implement
         adapter.remove(ac);
         observeOnce(wrappedDeleteLiveData, this, (ignored) -> {
             if (wrappedDeleteLiveData.hasError()) {
-                Toast.makeText(requireContext(), getString(R.string.error_revoking_ac, ac.getUser().getDisplayname()), Toast.LENGTH_LONG).show();
                 DeckLog.logError(wrappedDeleteLiveData.getError());
+                BrandedSnackbar.make(requireView(), getString(R.string.error_revoking_ac, ac.getUser().getDisplayname()), Snackbar.LENGTH_LONG)
+                        .setAction(R.string.simple_more, v -> ExceptionDialogFragment.newInstance(wrappedDeleteLiveData.getError(), viewModel.getCurrentAccount()).show(getChildFragmentManager(), ExceptionDialogFragment.class.getSimpleName()))
+                        .show();
             }
         });
     }
@@ -129,9 +135,9 @@ public class AccessControlDialogFragment extends BrandedDialogFragment implement
     }
 
     @Override
-    public void applyBrand(int mainColor, int textColor) {
-        BrandedActivity.applyBrandToEditText(mainColor, textColor, binding.people);
-        this.adapter.applyBrand(mainColor, textColor);
+    public void applyBrand(int mainColor) {
+        applyBrandToEditText(mainColor, binding.people);
+        this.adapter.applyBrand(mainColor);
     }
 
     public static DialogFragment newInstance(long boardLocalId) {

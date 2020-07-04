@@ -26,7 +26,7 @@
         android:paddingBottom="16dp"
         android:textAlignment="center"
         android:textSize="@dimen/empty_content_font_size"
-        hint:text="@string/app_name_short" />
+        hint:text="@string/no_cards" />
 
     <TextView
         android:id="@+id/description"
@@ -35,9 +35,7 @@
         android:layout_below="@id/title"
         android:layout_centerHorizontal="true"
         android:paddingStart="@dimen/spacer_2x"
-        android:paddingLeft="@dimen/spacer_2x"
         android:paddingEnd="@dimen/spacer_2x"
-        android:paddingRight="@dimen/spacer_2x"
         android:textAlignment="center"
-        hint:text="@string/app_name" />
+        hint:text="@string/add_a_new_card_using_the_button" />
 </RelativeLayout>

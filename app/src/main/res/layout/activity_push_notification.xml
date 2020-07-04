@@ -21,8 +21,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?android:actionBarSize"
                 app:navigationIcon="@drawable/ic_arrow_back_white_24dp"
-                app:title="@string/app_name"
-                app:titleTextColor="@android:color/white" />
+                app:title="@string/app_name" />
         </com.google.android.material.appbar.AppBarLayout>
 
         <ProgressBar
@@ -79,7 +78,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/spacer_1x"
-            android:layout_marginRight="@dimen/spacer_1x"
             android:layout_weight=".5"
             android:text="@string/simple_close" />
 
@@ -89,7 +87,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/spacer_1x"
-            android:layout_marginLeft="@dimen/spacer_1x"
             android:layout_weight=".5"
             android:enabled="false"
             android:text="@string/updating_card" />

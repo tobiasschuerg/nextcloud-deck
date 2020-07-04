@@ -12,7 +12,6 @@
         android:layout_width="@dimen/avatar_size"
         android:layout_height="@dimen/avatar_size"
         android:layout_marginEnd="@dimen/spacer_2x"
-        android:layout_marginRight="@dimen/spacer_2x"
         android:contentDescription="@null"
         app:srcCompat="@drawable/ic_person_grey600_24dp"
         tools:srcCompat="@tools:sample/avatars" />
@@ -29,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight="1"
-            android:textSize="16sp"
+            android:textAppearance="?attr/textAppearanceListItem"
             tools:text="@tools:sample/full_names" />
 
         <TextView
@@ -38,8 +37,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight="1"
-            android:text="@string/owner"
-            android:textColor="@color/fg_secondary" />
+            android:textAppearance="?attr/textAppearanceListItemSecondary"
+            tools:text="https://example.com/" />
     </LinearLayout>
 
 </LinearLayout>

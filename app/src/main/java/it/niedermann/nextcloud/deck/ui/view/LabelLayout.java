@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Px;
 
 import com.google.android.flexbox.FlexboxLayout;
 
@@ -11,14 +12,20 @@ import java.util.LinkedList;
 import java.util.List;
 
 import it.niedermann.nextcloud.deck.DeckLog;
+import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.model.Label;
+
+import static it.niedermann.nextcloud.deck.util.DimensionUtil.dpToPx;
 
 public class LabelLayout extends FlexboxLayout {
 
+    @Px
+    private int gutter;
     private List<LabelChip> chipList = new LinkedList<>();
 
     public LabelLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
+        this.gutter = dpToPx(context, R.dimen.spacer_1hx);
     }
 
     /**
@@ -49,9 +56,9 @@ public class LabelLayout extends FlexboxLayout {
         chipList:
         for (int i = 0; i < chipList.size(); i++) {
             LabelChip currentChip = chipList.get(i);
-            final Long existingLabelLocalId = currentChip.getLabelLocalId();
+            final Label existingLabel = currentChip.getLabel();
             for (Label label : labels) {
-                if (existingLabelLocalId.equals(label.getLocalId())) {
+                if (existingLabel.equals(label)) {
                     continue chipList;
                 }
             }
@@ -70,12 +77,12 @@ public class LabelLayout extends FlexboxLayout {
         for (Label label : labels) {
             for (int i = 0; i < oldLabelSize; i++) {
                 final LabelChip currentChip = chipList.get(i);
-                final Long existingLabelLocalId = currentChip.getLabelLocalId();
-                if (existingLabelLocalId.equals(label.getLocalId())) {
+                final Label existingLabel = currentChip.getLabel();
+                if (existingLabel.equals(label)) {
                     continue labelList;
                 }
             }
-            LabelChip chip = new LabelChip(getContext(), label);
+            LabelChip chip = new LabelChip(getContext(), label, gutter);
             addView(chip);
             chipList.add(chip);
         }

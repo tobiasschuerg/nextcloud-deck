@@ -1,16 +1,24 @@
 package it.niedermann.nextcloud.deck.model;
 
+import android.net.Uri;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Px;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import com.nextcloud.android.sso.model.SingleSignOnAccount;
+
 import java.io.Serializable;
 
+import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.model.ocs.Capabilities;
 import it.niedermann.nextcloud.deck.model.ocs.Version;
+import it.niedermann.nextcloud.deck.ui.accountswitcher.AccountSwitcherDialog;
+import it.niedermann.nextcloud.deck.util.ColorUtil;
 
 @Entity(indices = {@Index(value = "name", unique = true)})
 public class Account implements Serializable {
@@ -69,9 +77,17 @@ public class Account implements Serializable {
     public void applyCapabilities(Capabilities capabilities) {
         maintenanceEnabled = capabilities.isMaintenanceEnabled();
         if (!isMaintenanceEnabled()) {
-            color = capabilities.getColor();
-            textColor = capabilities.getTextColor();
-            if (capabilities.getDeckVersion()!=null) {
+            try {
+                // Nextcloud might return color format #000 which cannot be parsed by Color.parseColor()
+                // https://github.com/stefan-niedermann/nextcloud-deck/issues/466
+                color = ColorUtil.formatColorToParsableHexString(capabilities.getColor());
+                textColor = ColorUtil.formatColorToParsableHexString(capabilities.getTextColor());
+            } catch (Exception e) {
+                DeckLog.logError(e);
+                color = "#0082c9";
+                color = "#ffffff";
+            }
+            if (capabilities.getDeckVersion() != null) {
                 serverDeckVersion = capabilities.getDeckVersion().getOriginalVersion();
             }
         }
@@ -170,6 +186,15 @@ public class Account implements Serializable {
         if (!color.equals(account.color)) return false;
         if (!textColor.equals(account.textColor)) return false;
         return serverDeckVersion.equals(account.serverDeckVersion);
+    }
+
+    /**
+     * A cache buster parameter is added for duplicate account names on different hosts which shall be fetched from the same {@link SingleSignOnAccount} (e. g. {@link AccountSwitcherDialog})
+     *
+     * @return an {@link String} to fetch the avatar for this account.
+     */
+    public String getAvatarUrl(@Px int size) {
+        return getUrl() + "/index.php/avatar/" + Uri.encode(getUserName()) + "/" + size;
     }
 
     @Override

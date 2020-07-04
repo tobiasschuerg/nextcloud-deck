@@ -1,38 +1,40 @@
 package it.niedermann.nextcloud.deck.ui;
 
+import android.app.Application;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
 import it.niedermann.nextcloud.deck.model.Account;
 import it.niedermann.nextcloud.deck.model.Board;
-import it.niedermann.nextcloud.deck.model.internal.FilterInformation;
 
 @SuppressWarnings("WeakerAccess")
-public class MainViewModel extends ViewModel {
+public class MainViewModel extends AndroidViewModel {
 
-    @NonNull
-    private MutableLiveData<FilterInformation> filterInformation = new MutableLiveData<>();
-    private Account currentAccount;
+    private MutableLiveData<Account> currentAccount = new MutableLiveData<>();
     private Board currentBoard;
+    private boolean currentAccountHasArchivedBoards = false;
 
-    public void postFilterInformation(@Nullable FilterInformation filterInformation) {
-        this.filterInformation.postValue(filterInformation);
-    }
+    private boolean currentAccountIsSupportedVersion = false;
 
-    @NonNull
-    public LiveData<FilterInformation> getFilterInformation() {
-        return this.filterInformation;
+    public MainViewModel(@NonNull Application application) {
+        super(application);
     }
 
     public Account getCurrentAccount() {
-        return currentAccount;
+        return currentAccount.getValue();
+    }
+
+    public LiveData<Account> getCurrentAccountLiveData() {
+        return this.currentAccount;
     }
 
     public void setCurrentAccount(Account currentAccount) {
-        this.currentAccount = currentAccount;
+        this.currentAccount.setValue(currentAccount);
+        this.currentAccountIsSupportedVersion = currentAccount.getServerDeckVersionAsObject().isSupported(getApplication().getApplicationContext());
     }
 
     public void setCurrentBoard(Board currentBoard) {
@@ -43,7 +45,24 @@ public class MainViewModel extends ViewModel {
         return this.currentBoard.getLocalId();
     }
 
+    @Nullable
+    public Long getCurrentBoardRemoteId() {
+        return this.currentBoard.getId();
+    }
+
     public boolean currentBoardHasEditPermission() {
-        return this.currentBoard != null && this.currentBoard.isPermissionEdit();
+        return this.currentBoard != null && this.currentBoard.isPermissionEdit() && currentAccountIsSupportedVersion;
+    }
+
+    public boolean currentAccountHasArchivedBoards() {
+        return currentAccountHasArchivedBoards;
+    }
+
+    public void setCurrentAccountHasArchivedBoards(boolean currentAccountHasArchivedBoards) {
+        this.currentAccountHasArchivedBoards = currentAccountHasArchivedBoards;
+    }
+
+    public boolean isCurrentAccountIsSupportedVersion() {
+        return currentAccountIsSupportedVersion;
     }
 }

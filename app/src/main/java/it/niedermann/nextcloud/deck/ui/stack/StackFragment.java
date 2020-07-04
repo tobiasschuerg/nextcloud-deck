@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LiveData;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 import it.niedermann.android.crosstabdnd.DragAndDropTab;
+import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.databinding.FragmentStackBinding;
 import it.niedermann.nextcloud.deck.model.full.FullCard;
 import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
@@ -24,6 +26,7 @@ import it.niedermann.nextcloud.deck.ui.MainViewModel;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedFragment;
 import it.niedermann.nextcloud.deck.ui.card.CardAdapter;
 import it.niedermann.nextcloud.deck.ui.card.SelectCardListener;
+import it.niedermann.nextcloud.deck.ui.filter.FilterViewModel;
 
 public class StackFragment extends BrandedFragment implements DragAndDropTab<CardAdapter> {
 
@@ -34,6 +37,7 @@ public class StackFragment extends BrandedFragment implements DragAndDropTab<Car
     private FragmentActivity activity;
     private OnScrollListener onScrollListener;
 
+    @Nullable
     private CardAdapter adapter = null;
     private LiveData<List<FullCard>> cardsLiveData;
 
@@ -60,11 +64,29 @@ public class StackFragment extends BrandedFragment implements DragAndDropTab<Car
         binding = FragmentStackBinding.inflate(inflater, container, false);
         activity = requireActivity();
 
-        final MainViewModel viewModel = new ViewModelProvider(activity).get(MainViewModel.class);
+        final MainViewModel mainViewModel = new ViewModelProvider(activity).get(MainViewModel.class);
+        final FilterViewModel filterViewModel = new ViewModelProvider(activity).get(FilterViewModel.class);
+
+        // This might be a zombie fragment with an empty MainViewModel after Android killed the activity (but not the fragment instance
+        // See https://github.com/stefan-niedermann/nextcloud-deck/issues/478
+        if (mainViewModel.getCurrentAccount() == null) {
+            DeckLog.logError(new IllegalStateException("Cannot populate " + StackFragment.class.getSimpleName() + " because mainViewModel.getCurrentAccount() is null"));
+            return binding.getRoot();
+        }
 
         syncManager = new SyncManager(activity);
 
-        adapter = new CardAdapter(requireContext(), viewModel.getCurrentAccount(), viewModel.getCurrentBoardLocalId(), stackId, viewModel.currentBoardHasEditPermission(), syncManager, this, (requireActivity() instanceof SelectCardListener) ? (SelectCardListener) requireActivity() : null);
+        adapter = new CardAdapter(
+                requireContext(),
+                getChildFragmentManager(),
+                mainViewModel.getCurrentAccount(),
+                mainViewModel.getCurrentBoardLocalId(),
+                mainViewModel.getCurrentBoardRemoteId(),
+                stackId,
+                mainViewModel.currentBoardHasEditPermission(),
+                syncManager,
+                this,
+                (requireActivity() instanceof SelectCardListener) ? (SelectCardListener) requireActivity() : null);
         binding.recyclerView.setAdapter(adapter);
 
         if (onScrollListener != null) {
@@ -79,7 +101,7 @@ public class StackFragment extends BrandedFragment implements DragAndDropTab<Car
             });
         }
 
-        if (!viewModel.currentBoardHasEditPermission()) {
+        if (!mainViewModel.currentBoardHasEditPermission()) {
             binding.emptyContentView.hideDescription();
         }
 
@@ -92,18 +114,19 @@ public class StackFragment extends BrandedFragment implements DragAndDropTab<Car
             }
         });
 
-        cardsLiveData = syncManager.getFullCardsForStack(viewModel.getCurrentAccount().getId(), stackId, viewModel.getFilterInformation().getValue());
+        cardsLiveData = syncManager.getFullCardsForStack(mainViewModel.getCurrentAccount().getId(), stackId, filterViewModel.getFilterInformation().getValue());
         cardsLiveData.observe(getViewLifecycleOwner(), cardsObserver);
 
-        viewModel.getFilterInformation().observe(getViewLifecycleOwner(), (filterInformation -> {
+        filterViewModel.getFilterInformation().observe(getViewLifecycleOwner(), (filterInformation -> {
             cardsLiveData.removeObserver(cardsObserver);
-            cardsLiveData = syncManager.getFullCardsForStack(viewModel.getCurrentAccount().getId(), stackId, filterInformation);
+            cardsLiveData = syncManager.getFullCardsForStack(mainViewModel.getCurrentAccount().getId(), stackId, filterInformation);
             cardsLiveData.observe(getViewLifecycleOwner(), cardsObserver);
         }));
 
         return binding.getRoot();
     }
 
+    @Nullable
     @Override
     public CardAdapter getAdapter() {
         return adapter;
@@ -115,8 +138,10 @@ public class StackFragment extends BrandedFragment implements DragAndDropTab<Car
     }
 
     @Override
-    public void applyBrand(int mainColor, int textColor) {
-        this.adapter.applyBrand(mainColor, textColor);
+    public void applyBrand(int mainColor) {
+        if (this.adapter != null) {
+            this.adapter.applyBrand(mainColor);
+        }
     }
 
     public static Fragment newInstance(long stackId) {

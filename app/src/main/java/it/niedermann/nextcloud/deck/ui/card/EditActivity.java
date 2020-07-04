@@ -2,7 +2,7 @@ package it.niedermann.nextcloud.deck.ui.card;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -14,11 +14,14 @@ import android.view.MenuItem;
 import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import it.niedermann.nextcloud.deck.DeckLog;
 import it.niedermann.nextcloud.deck.R;
 import it.niedermann.nextcloud.deck.databinding.ActivityEditBinding;
 import it.niedermann.nextcloud.deck.model.Account;
@@ -28,7 +31,10 @@ import it.niedermann.nextcloud.deck.ui.branding.BrandedAlertDialogBuilder;
 import it.niedermann.nextcloud.deck.ui.exception.ExceptionHandler;
 import it.niedermann.nextcloud.deck.util.CardUtil;
 
+import static android.graphics.Color.parseColor;
 import static it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.LiveDataHelper.observeOnce;
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToPrimaryTabLayout;
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.isBrandingEnabled;
 
 public class EditActivity extends BrandedActivity {
     private static final String BUNDLE_KEY_ACCOUNT = "account";
@@ -71,14 +77,26 @@ public class EditActivity extends BrandedActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
-
         binding = ActivityEditBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         setSupportActionBar(binding.toolbar);
 
+        viewModel = new ViewModelProvider(this).get(EditCardViewModel.class);
+        syncManager = new SyncManager(this);
+
+        loadDataFromIntent();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        applyBrand(colorAccent);
+        setIntent(intent);
+        loadDataFromIntent();
+    }
+
+    private void loadDataFromIntent() {
         final Bundle args = getIntent().getExtras();
 
         if (args == null || !args.containsKey(BUNDLE_KEY_ACCOUNT) || !args.containsKey(BUNDLE_KEY_BOARD_ID)) {
@@ -86,9 +104,6 @@ public class EditActivity extends BrandedActivity {
         }
 
         long cardId = args.getLong(BUNDLE_KEY_CARD_ID);
-
-        viewModel = new ViewModelProvider(this).get(EditCardViewModel.class);
-        syncManager = new SyncManager(this);
 
         if (cardId == 0L) {
             viewModel.setCreateMode(true);
@@ -101,13 +116,17 @@ public class EditActivity extends BrandedActivity {
         if (account == null) {
             throw new IllegalArgumentException(BUNDLE_KEY_ACCOUNT + " must not be null.");
         }
+        viewModel.setAccount(account);
+
         final long boardId = args.getLong(BUNDLE_KEY_BOARD_ID);
 
         observeOnce(syncManager.getFullBoardById(account.getId(), boardId), EditActivity.this, (fullBoard -> {
+            applyBrand(parseColor('#' + fullBoard.getBoard().getColor()));
             viewModel.setCanEdit(fullBoard.getBoard().isPermissionEdit());
             invalidateOptionsMenu();
             if (viewModel.isCreateMode()) {
-                viewModel.initializeNewCard(account, boardId, args.getLong(BUNDLE_KEY_STACK_ID));
+                viewModel.initializeNewCard(boardId, args.getLong(BUNDLE_KEY_STACK_ID), account.getServerDeckVersionAsObject().isSupported(this));
+                invalidateOptionsMenu();
                 String title = args.getString(BUNDLE_KEY_TITLE);
                 if (!TextUtils.isEmpty(title)) {
                     if (title.length() > viewModel.getAccount().getServerDeckVersionAsObject().getCardTitleMaxLength()) {
@@ -120,9 +139,18 @@ public class EditActivity extends BrandedActivity {
                 setupTitle();
             } else {
                 observeOnce(syncManager.getCardByLocalId(account.getId(), cardId), EditActivity.this, (fullCard) -> {
-                    viewModel.initializeExistingCard(account, boardId, fullCard);
-                    setupViewPager();
-                    setupTitle();
+                    if (fullCard == null) {
+                        new BrandedAlertDialogBuilder(this)
+                                .setTitle(R.string.card_not_found)
+                                .setMessage(R.string.card_not_found_message)
+                                .setPositiveButton(R.string.simple_close, (a, b) -> super.finish())
+                                .show();
+                    } else {
+                        viewModel.initializeExistingCard(boardId, fullCard, account.getServerDeckVersionAsObject().isSupported(this));
+                        invalidateOptionsMenu();
+                        setupViewPager();
+                        setupTitle();
+                    }
                 });
             }
         }));
@@ -151,9 +179,11 @@ public class EditActivity extends BrandedActivity {
         if (!viewModel.isPendingCreation()) {
             viewModel.setPendingCreation(true);
             final String title = viewModel.getFullCard().getCard().getTitle();
-            if (title == null || title.isEmpty()) {
+            if (title == null || title.trim().isEmpty()) {
                 viewModel.getFullCard().getCard().setTitle(CardUtil.generateTitleFromDescription(viewModel.getFullCard().getCard().getDescription()));
             }
+            viewModel.getFullCard().getCard().setTitle(viewModel.getFullCard().getCard().getTitle().trim());
+            binding.title.setText(viewModel.getFullCard().getCard().getTitle());
             if (viewModel.getFullCard().getCard().getTitle().isEmpty()) {
                 new BrandedAlertDialogBuilder(this)
                         .setTitle(R.string.title_is_mandatory)
@@ -177,11 +207,11 @@ public class EditActivity extends BrandedActivity {
 
         final CardTabAdapter adapter = new CardTabAdapter(getSupportFragmentManager(), getLifecycle());
         final TabLayoutMediator mediator = new TabLayoutMediator(binding.tabLayout, binding.pager, (tab, position) -> {
-            tab.setIcon(viewModel.hasCommentsAbility()
+            tab.setIcon(!viewModel.isCreateMode() && viewModel.hasCommentsAbility()
                     ? tabIconsWithComments[position]
                     : tabIcons[position]
             );
-            tab.setContentDescription(viewModel.hasCommentsAbility()
+            tab.setContentDescription(!viewModel.isCreateMode() && viewModel.hasCommentsAbility()
                     ? tabTitlesWithComments[position]
                     : tabTitles[position]
             );
@@ -253,17 +283,28 @@ public class EditActivity extends BrandedActivity {
                     .setPositiveButton(R.string.simple_save, (dialog, whichButton) -> saveAndFinish())
                     .setNegativeButton(R.string.simple_discard, (dialog, whichButton) -> super.finish()).show();
         } else {
-            super.finish();
+            directFinish();
         }
     }
 
+    /**
+     * Performs a call of {@link AppCompatActivity#finish()} without checking for changes
+     */
+    public void directFinish() {
+        super.finish();
+    }
+
     @Override
-    public void applyBrand(int mainColor, int textColor) {
-        applyBrandToPrimaryToolbar(mainColor, textColor, binding.toolbar);
-        applyBrandToPrimaryTabLayout(mainColor, textColor, binding.tabLayout);
-        final int highlightColor = Color.argb(77, Color.red(textColor), Color.green(textColor), Color.blue(textColor));
-        binding.title.setHighlightColor(highlightColor);
-        binding.title.setTextColor(textColor);
+    public void applyBrand(int mainColor) {
+        if(isBrandingEnabled(this)) {
+            final Drawable navigationIcon = binding.toolbar.getNavigationIcon();
+            if (navigationIcon == null) {
+                DeckLog.error("Excpected navigationIcon to be present.");
+            } else {
+                DrawableCompat.setTint(binding.toolbar.getNavigationIcon(), colorAccent);
+            }
+            applyBrandToPrimaryTabLayout(mainColor, binding.tabLayout);
+        }
     }
 
     @NonNull
