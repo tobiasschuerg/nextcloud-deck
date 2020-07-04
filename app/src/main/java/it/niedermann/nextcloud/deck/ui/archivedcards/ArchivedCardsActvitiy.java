@@ -55,7 +55,7 @@ public class ArchivedCardsActvitiy extends BrandedActivity {
 
         syncManager = new SyncManager(this);
 
-        adapter = new ArchivedCardsAdapter(this, account, boardId, false, syncManager, this);
+        adapter = new ArchivedCardsAdapter(this, getSupportFragmentManager(), account, boardId, false, syncManager, this);
         binding.recyclerView.setAdapter(adapter);
 
         syncManager.getArchivedFullCardsForBoard(account.getId(), boardId).observe(this, (fullCards) -> {
@@ -65,8 +65,8 @@ public class ArchivedCardsActvitiy extends BrandedActivity {
     }
 
     @Override
-    public void applyBrand(int mainColor, int textColor) {
-        applyBrandToPrimaryToolbar(mainColor, textColor, binding.toolbar);
+    public void applyBrand(int mainColor) {
+        // Nothing to do...
     }
 
     @NonNull

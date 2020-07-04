@@ -46,6 +46,7 @@ import it.niedermann.nextcloud.deck.persistence.sync.SyncManager;
 import it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.WrappedLiveData;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedDatePickerDialog;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedFragment;
+import it.niedermann.nextcloud.deck.ui.branding.BrandedSnackbar;
 import it.niedermann.nextcloud.deck.ui.branding.BrandedTimePickerDialog;
 import it.niedermann.nextcloud.deck.ui.card.EditCardViewModel;
 import it.niedermann.nextcloud.deck.ui.card.LabelAutoCompleteAdapter;
@@ -57,7 +58,7 @@ import it.niedermann.nextcloud.deck.util.ViewUtil;
 
 import static android.text.format.DateFormat.getDateFormat;
 import static it.niedermann.nextcloud.deck.persistence.sync.adapters.db.util.LiveDataHelper.observeOnce;
-import static it.niedermann.nextcloud.deck.ui.branding.BrandedActivity.applyBrandToEditText;
+import static it.niedermann.nextcloud.deck.ui.branding.BrandingUtil.applyBrandToEditText;
 import static it.niedermann.nextcloud.deck.util.DimensionUtil.dpToPx;
 
 public class CardDetailsFragment extends BrandedFragment implements OnDateSetListener, OnTimeSetListener {
@@ -94,6 +95,14 @@ public class CardDetailsFragment extends BrandedFragment implements OnDateSetLis
         dateFormat = getDateFormat(activity);
 
         viewModel = new ViewModelProvider(activity).get(EditCardViewModel.class);
+
+        // This might be a zombie fragment with an empty EditCardViewModel after Android killed the activity (but not the fragment instance
+        // See https://github.com/stefan-niedermann/nextcloud-deck/issues/478
+        if (viewModel.getFullCard() == null) {
+            DeckLog.logError(new IllegalStateException("Cannot populate " + CardDetailsFragment.class.getSimpleName() + " because viewModel.getFullCard() is null"));
+            return binding.getRoot();
+        }
+
         syncManager = new SyncManager(requireContext());
 
         avatarSize = dpToPx(requireContext(), R.dimen.avatar_size);
@@ -127,12 +136,12 @@ public class CardDetailsFragment extends BrandedFragment implements OnDateSetLis
     }
 
     @Override
-    public void applyBrand(int mainColor, int textColor) {
-        applyBrandToEditText(mainColor, textColor, binding.labels);
-        applyBrandToEditText(mainColor, textColor, binding.dueDateDate);
-        applyBrandToEditText(mainColor, textColor, binding.dueDateTime);
-        applyBrandToEditText(mainColor, textColor, binding.people);
-        applyBrandToEditText(mainColor, textColor, binding.description);
+    public void applyBrand(int mainColor) {
+        applyBrandToEditText(mainColor, binding.labels);
+        applyBrandToEditText(mainColor, binding.dueDateDate);
+        applyBrandToEditText(mainColor, binding.dueDateTime);
+        applyBrandToEditText(mainColor, binding.people);
+        applyBrandToEditText(mainColor, binding.description);
     }
 
     private void setupDescription() {
@@ -261,8 +270,8 @@ public class CardDetailsFragment extends BrandedFragment implements OnDateSetLis
                     observeOnce(createLabelLiveData, CardDetailsFragment.this, createdLabel -> {
                         if (createLabelLiveData.hasError()) {
                             DeckLog.logError(createLabelLiveData.getError());
-                            Snackbar.make(requireView(), getString(R.string.error_create_label, newLabel.getTitle()), Snackbar.LENGTH_LONG)
-                                    .setAction(R.string.simple_more, v -> ExceptionDialogFragment.newInstance(createLabelLiveData.getError()).show(getChildFragmentManager(), ExceptionDialogFragment.class.getSimpleName())).show();
+                            BrandedSnackbar.make(requireView(), getString(R.string.error_create_label, newLabel.getTitle()), Snackbar.LENGTH_LONG)
+                                    .setAction(R.string.simple_more, v -> ExceptionDialogFragment.newInstance(createLabelLiveData.getError(), viewModel.getAccount()).show(getChildFragmentManager(), ExceptionDialogFragment.class.getSimpleName())).show();
                         } else {
                             newLabel.setLocalId(createdLabel.getLocalId());
                             ((LabelAutoCompleteAdapter) binding.labels.getAdapter()).exclude(createdLabel);
@@ -354,7 +363,7 @@ public class CardDetailsFragment extends BrandedFragment implements OnDateSetLis
                 viewModel.getFullCard().getAssignedUsers().remove(user);
                 binding.peopleList.removeView(avatar);
                 ((UserAutoCompleteAdapter) binding.people.getAdapter()).include(user);
-                Snackbar.make(
+                BrandedSnackbar.make(
                         requireView(), getString(R.string.unassigned_user, user.getDisplayname()),
                         Snackbar.LENGTH_LONG)
                         .setAction(R.string.simple_undo, v1 -> {

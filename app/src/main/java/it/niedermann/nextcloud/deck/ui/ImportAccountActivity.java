@@ -4,13 +4,17 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteConstraintException;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.preference.PreferenceManager;
 
 import com.nextcloud.android.sso.AccountImporter;
@@ -81,6 +85,12 @@ public class ImportAccountActivity extends AppCompatActivity {
                 AccountImporter.requestAndroidAccountPermissionsAndPickAccount(this);
             }
         });
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            Drawable wrapDrawable = DrawableCompat.wrap(binding.progressCircular.getIndeterminateDrawable());
+            DrawableCompat.setTint(wrapDrawable, ContextCompat.getColor(this, R.color.defaultBrand));
+            binding.progressCircular.setIndeterminateDrawable(DrawableCompat.unwrap(wrapDrawable));
+        }
     }
 
     @Override
@@ -118,8 +128,7 @@ public class ImportAccountActivity extends AppCompatActivity {
                                 }
                                 assert error != null;
                                 setStatusText(error.getMessage());
-                                runOnUiThread(() -> ExceptionDialogFragment.newInstance(error).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
-                                runOnUiThread(() -> ExceptionDialogFragment.newInstance(error).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
+                                runOnUiThread(() -> ExceptionDialogFragment.newInstance(error, createdAccount).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
                                 restoreWifiPref();
                             } else {
                                 // Remember last account - THIS HAS TO BE DONE SYNCHRONOUSLY
@@ -146,7 +155,7 @@ public class ImportAccountActivity extends AppCompatActivity {
                                                     public void onError(Throwable throwable) {
                                                         super.onError(throwable);
                                                         setStatusText(throwable.getMessage());
-                                                        runOnUiThread(() -> ExceptionDialogFragment.newInstance(throwable).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
+                                                        runOnUiThread(() -> ExceptionDialogFragment.newInstance(throwable, createdAccount).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
                                                         rollbackAccountCreation(syncManager, createdAccount.getId());
                                                     }
                                                 });
@@ -175,7 +184,7 @@ public class ImportAccountActivity extends AppCompatActivity {
                                             setStatusText(R.string.you_have_to_be_connected_to_the_internet_in_order_to_add_an_account);
                                         } else {
                                             setStatusText(throwable.getMessage());
-                                            runOnUiThread(() -> ExceptionDialogFragment.newInstance(throwable).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
+                                            runOnUiThread(() -> ExceptionDialogFragment.newInstance(throwable, createdAccount).show(getSupportFragmentManager(), ExceptionDialogFragment.class.getSimpleName()));
                                         }
                                         rollbackAccountCreation(syncManager, createdAccount.getId());
                                     }
